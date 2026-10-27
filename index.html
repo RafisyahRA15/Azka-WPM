@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monkeytype - Feel Good Edition</title>
+    <title>Monkeytype</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Roboto Mono -->
+    <!-- Google Fonts: Roboto Mono (Monkeytype default feel) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <script>
-        // Konfigurasi Tema Monkeytype Dark
+        // Exact Monkeytype Dark Theme Colors
         tailwind.config = {
             theme: {
                 extend: {
@@ -22,9 +22,11 @@
                     colors: {
                         mt: {
                             bg: '#323437',
+                            dark: '#2c2e31',
                             textDefault: '#646669',
                             textCorrect: '#d1d0c5',
                             textError: '#ca4754',
+                            errorExtra: '#7e2a33',
                             primary: '#e2b714',
                         }
                     }
@@ -36,10 +38,10 @@
         body {
             background-color: #323437;
             color: #646669;
-            overflow: hidden; /* Mencegah scroll bar tidak perlu */
+            overflow: hidden; /* Hide scrollbar for clean look */
         }
 
-        /* Animasi kursor berkedip */
+        /* Animated smooth caret */
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
@@ -50,330 +52,384 @@
             height: 1.5em;
             background-color: #e2b714;
             position: absolute;
-            transition: left 0.1s ease, top 0.1s ease;
+            transition: transform 0.1s ease;
             z-index: 10;
+            border-radius: 2px;
         }
 
         .blink {
             animation: blink 1s infinite;
         }
 
-        /* Tampilan container kata */
-        #words-container {
-            max-height: 140px; /* Cukup untuk sekitar 3 baris teks */
-            overflow: hidden;
+        /* Typing Area Container */
+        #typing-area {
             position: relative;
-            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            max-height: 120px; /* Limit to ~3 lines */
+            overflow: hidden;
+            font-size: 1.75rem; /* Large font size like original */
+            line-height: 1.5;
         }
 
         #words {
-            transition: transform 0.2s ease;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            transition: transform 0.25s ease; /* Smooth line scrolling */
+            width: 100%;
         }
 
         .word {
-            display: inline-block;
-            margin-right: 0.8em;
-            margin-bottom: 0.5em;
+            display: flex;
+            margin: 0 0.5em 0.3em 0;
+            border-bottom: 2px solid transparent; /* For error underline */
+        }
+        
+        .word.error-underline {
+            border-bottom-color: #ca4754;
         }
 
         .letter {
-            border-bottom: 2px solid transparent; /* Untuk indikasi error ekstra di masa depan jika perlu */
+            color: #646669; /* Default */
+        }
+
+        .letter.correct {
+            color: #d1d0c5;
+        }
+
+        .letter.error {
+            color: #ca4754;
         }
         
         .letter.extra {
-            color: #ca4754; /* Extra typed letters are always red */
+            color: #7e2a33; /* Darker red for extra letters */
         }
 
-        /* Mencegah seleksi teks saat mengetik cepat */
         .no-select {
             user-select: none;
             -webkit-user-select: none;
         }
+
+        /* Custom Scrollbar for dropdown */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2c2e31; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #646669; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e2b714; 
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-mono text-xl md:text-2xl selection:bg-mt-primary/30">
+<body class="min-h-screen flex flex-col font-mono selection:bg-mt-primary/30">
 
-    <!-- Header -->
-    <header class="w-full max-w-5xl mx-auto px-6 py-8 flex items-center justify-between">
-        <div class="flex items-center gap-3 text-mt-textCorrect">
-            <div class="text-3xl font-bold tracking-tighter flex items-center gap-2">
-                <svg class="w-8 h-8 text-mt-primary" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                monkeytype <span class="text-xs bg-mt-primary/10 text-mt-primary px-2 py-0.5 rounded border border-mt-primary/20 align-middle">BOOST</span>
+    <!-- Navbar -->
+    <header class="w-full max-w-[1000px] mx-auto px-4 py-8 flex items-center justify-between">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 text-mt-textCorrect cursor-pointer hover:text-mt-textCorrect/80 transition-colors" onclick="resetTest()">
+            <svg class="w-8 h-8 text-mt-primary" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <div class="text-3xl font-bold tracking-tighter relative">
+                monkeytype
+                <span class="absolute -top-1 -right-6 text-[10px] bg-mt-primary text-mt-bg px-1 rounded font-bold">BOOST</span>
             </div>
         </div>
-        <div class="flex gap-4 text-sm font-medium">
-            <span class="text-mt-primary cursor-pointer hover:text-mt-primary/80 transition-colors">30s</span>
-            <span class="cursor-pointer hover:text-mt-textCorrect transition-colors">60s</span>
+        
+        <!-- Right Icons -->
+        <div class="flex gap-4 text-mt-textDefault">
+            <svg class="w-5 h-5 hover:text-mt-textCorrect cursor-pointer transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <svg class="w-5 h-5 hover:text-mt-textCorrect cursor-pointer transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         </div>
     </header>
 
+    <!-- Test Settings Bar -->
+    <div id="test-config" class="w-full max-w-[1000px] mx-auto px-4 mb-12 flex justify-center">
+        <div class="bg-mt-dark rounded-lg flex items-center px-4 py-2 text-sm text-mt-textDefault font-medium gap-6 shadow-sm">
+            
+            <!-- Language Selector -->
+            <div class="flex items-center gap-2 group relative">
+                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textCorrect transition-colors" onclick="toggleLanguageMenu()">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    <span id="current-lang">english</span>
+                </div>
+                <!-- Dropdown -->
+                <div id="lang-dropdown" class="hidden absolute top-full left-0 mt-2 bg-mt-bg border border-mt-dark rounded shadow-lg z-20 py-2 w-32">
+                    <div class="px-4 py-1 hover:bg-mt-dark hover:text-mt-textCorrect cursor-pointer" onclick="setLanguage('en')">english</div>
+                    <div class="px-4 py-1 hover:bg-mt-dark hover:text-mt-textCorrect cursor-pointer" onclick="setLanguage('id')">indonesian</div>
+                </div>
+            </div>
+
+            <div class="w-1 h-4 bg-mt-textDefault/20 rounded"></div> <!-- Divider -->
+
+            <!-- Test Mode (Dummy UI for clone accuracy) -->
+            <div class="flex items-center gap-4">
+                <span class="cursor-pointer text-mt-primary flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> time</span>
+                <span class="cursor-pointer hover:text-mt-textCorrect transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg> words</span>
+                <span class="cursor-pointer hover:text-mt-textCorrect transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg> quote</span>
+            </div>
+
+            <div class="w-1 h-4 bg-mt-textDefault/20 rounded"></div> <!-- Divider -->
+
+            <!-- Time Selection -->
+            <div class="flex items-center gap-4">
+                <span class="time-opt cursor-pointer hover:text-mt-textCorrect transition-colors" data-time="15">15</span>
+                <span class="time-opt cursor-pointer text-mt-primary transition-colors" data-time="30">30</span>
+                <span class="time-opt cursor-pointer hover:text-mt-textCorrect transition-colors" data-time="60">60</span>
+                <span class="time-opt cursor-pointer hover:text-mt-textCorrect transition-colors" data-time="120">120</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Typing Area -->
-    <main class="w-full max-w-5xl mx-auto px-6 flex-grow flex flex-col justify-center relative -top-10">
+    <main class="w-full max-w-[1000px] mx-auto px-4 flex-grow flex flex-col justify-center relative -top-12">
         
-        <!-- Live Stats Panel -->
-        <div id="live-stats" class="flex text-mt-primary text-3xl mb-4 transition-opacity duration-300">
-            <div class="w-24" id="time-display">30</div>
-            <div class="flex-grow flex gap-6">
-                <div>WPM: <span id="wpm-display">0</span></div>
-            </div>
+        <!-- Live Stats (Time & WPM) -->
+        <div id="live-stats" class="flex items-center text-mt-primary text-3xl font-bold mb-4 opacity-100 transition-opacity duration-200 h-10">
+            <div id="time-display" class="w-16">30</div>
+            <div id="wpm-live-container" class="hidden">wpm: <span id="wpm-live">0</span></div>
         </div>
 
-        <!-- Typing Container -->
-        <div id="words-container" class="relative text-mt-textDefault leading-relaxed no-select">
+        <!-- Words Container -->
+        <div id="typing-area" class="no-select">
             <div id="caret" class="blink"></div>
-            <div id="words" class="flex flex-wrap w-full">
-                <!-- Words will be injected here via JS -->
+            <div id="words">
+                <!-- Words injected via JS -->
             </div>
         </div>
 
-        <!-- Restart Instruction -->
+        <!-- Shortcut Hint -->
         <div class="flex justify-center mt-12 opacity-50">
-            <button id="restart-btn" class="flex items-center gap-2 px-4 py-2 hover:bg-mt-textDefault/10 rounded transition-colors text-sm text-mt-textDefault hover:text-mt-textCorrect outline-none focus:ring-2 focus:ring-mt-primary">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                <span>Tab - Restart Test</span>
-            </button>
+            <div class="flex items-center gap-2 text-sm text-mt-textDefault">
+                <span class="bg-mt-textDefault/20 px-2 py-0.5 rounded text-mt-textCorrect">tab</span> + <span class="bg-mt-textDefault/20 px-2 py-0.5 rounded text-mt-textCorrect">enter</span> - restart test
+            </div>
         </div>
     </main>
 
     <!-- Results Screen (Hidden by default) -->
-    <div id="results-screen" class="fixed inset-0 bg-mt-bg z-50 hidden flex-col items-center justify-center p-6">
-        <div class="w-full max-w-3xl">
-            <div class="text-mt-textDefault text-sm uppercase mb-4 tracking-widest">Test Complete (Boosted)</div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+    <div id="results-screen" class="fixed inset-0 bg-mt-bg z-50 hidden flex-col w-full max-w-[1000px] mx-auto px-4 justify-center">
+        <!-- Top row stats -->
+        <div class="flex items-start gap-12 mb-10">
+            <!-- Left col -->
+            <div class="flex flex-col gap-6">
                 <div>
-                    <div class="text-3xl text-mt-textDefault">wpm</div>
-                    <div id="res-wpm" class="text-6xl md:text-8xl font-bold text-mt-primary">120</div>
+                    <div class="text-mt-textDefault text-3xl">wpm</div>
+                    <div id="res-wpm" class="text-7xl font-bold text-mt-primary leading-none">0</div>
                 </div>
                 <div>
-                    <div class="text-3xl text-mt-textDefault">acc</div>
-                    <div id="res-acc" class="text-6xl md:text-8xl font-bold text-mt-primary">98%</div>
+                    <div class="text-mt-textDefault text-3xl">acc</div>
+                    <div id="res-acc" class="text-7xl font-bold text-mt-primary leading-none">0%</div>
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4 text-mt-textDefault mb-12">
-                <div>
-                    <div class="text-sm">test type</div>
-                    <div class="text-mt-textCorrect">time 30s</div>
-                    <div class="text-mt-textCorrect">indonesia + english</div>
-                </div>
-                <div>
-                    <div class="text-sm">characters</div>
-                    <div class="text-mt-textCorrect"><span id="res-correct">0</span>/<span id="res-error" class="text-mt-textError">0</span>/<span id="res-extra">0</span>/<span id="res-missed">0</span></div>
-                </div>
+            <!-- Graph placeholder (UI Clone visual) -->
+            <div class="flex-grow h-48 bg-mt-dark/30 rounded-lg border border-mt-dark flex items-center justify-center text-mt-textDefault/30">
+                [ Chart Area ]
             </div>
+        </div>
+        
+        <!-- Bottom stats -->
+        <div class="flex gap-16 text-mt-textDefault text-lg mb-12">
+            <div>
+                <div class="text-sm">test type</div>
+                <div class="text-mt-primary" id="res-type-time">time 30s</div>
+                <div class="text-mt-textCorrect" id="res-type-lang">english</div>
+            </div>
+            <div>
+                <div class="text-sm">characters</div>
+                <div class="text-3xl text-mt-textCorrect"><span id="res-correct">0</span><span class="text-mt-textDefault text-lg mx-1">/</span><span id="res-error" class="text-mt-textError">0</span><span class="text-mt-textDefault text-lg mx-1">/</span><span id="res-extra" class="text-mt-errorExtra">0</span></div>
+            </div>
+            <div>
+                <div class="text-sm">time</div>
+                <div class="text-3xl text-mt-textCorrect" id="res-time">30s</div>
+            </div>
+        </div>
 
-            <button onclick="resetTest()" class="text-mt-textDefault hover:text-mt-textCorrect transition-colors p-2 outline-none group">
-                <svg class="w-8 h-8 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <!-- Action Buttons -->
+        <div class="flex gap-4">
+            <button onclick="resetTest()" class="text-mt-textDefault hover:text-mt-textCorrect transition-colors outline-none group p-2 rounded hover:bg-mt-dark">
+                <svg class="w-6 h-6 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             </button>
         </div>
     </div>
 
     <script>
-        // Database Kata (Campuran Indonesia & Inggris yang umum)
-        const wordList = [
-            "saya", "kamu", "mereka", "kita", "the", "and", "is", "to", "yang", "di", "ke", 
-            "dari", "bisa", "akan", "ini", "itu", "ada", "tidak", "untuk", "sebuah", "dalam", 
-            "dengan", "pada", "juga", "sudah", "lebih", "karena", "seperti", "tapi", "oleh", 
-            "saja", "atau", "apa", "saat", "jika", "hingga", "hanya", "waktu", "banyak", 
-            "lain", "kembali", "orang", "tahun", "satu", "belum", "hari", "kami", "namun", 
-            "setelah", "menjadi", "agar", "baik", "bahkan", "hal", "lalu", "bahwa", "diri", 
-            "sendiri", "bukan", "antara", "sangat", "make", "when", "can", "more", "if", 
-            "no", "man", "out", "other", "so", "what", "time", "up", "go", "about", "than", 
-            "into", "could", "state", "only", "new", "year", "some", "take", "come", "these"
+        // --- Dictionaries (Strictly Separated) ---
+        const wordsEn = [
+            "the", "be", "to", "of", "and", "a", "in", "that", "have", "I", 
+            "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", 
+            "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", 
+            "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", 
+            "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", 
+            "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", 
+            "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", 
+            "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", 
+            "back", "after", "use", "two", "how", "our", "work", "first", "well", "way"
         ];
 
-        // State variables
-        let words = [];
+        const wordsId = [
+            "yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", 
+            "akan", "pada", "juga", "saya", "ke", "karena", "tersebut", "bisa", "ada", "mereka", 
+            "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", 
+            "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", 
+            "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", 
+            "sendiri", "belum", "bukan", "antara", "lagi", "sama", "sampai", "waktu", "kamu", "bahkan", 
+            "lalu", "bahwa", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "tempat", "besar", 
+            "bagi", "lakukan", "pernah", "atas", "terus", "selalu", "mana", "setiap", "semua", "cara",
+            "berada", "pun", "dua", "melihat", "awal", "bagian", "kali", "sebagai", "mungkin", "anak"
+        ];
+
+        // --- State Variables ---
+        let currentLanguage = 'en'; // default english
+        let currentDictionary = wordsEn;
+        
+        let testDuration = 30; // default 30s
+        let timeLeft = testDuration;
+        let timeElapsed = 0;
+        
+        let words = []; // Generated text
+        let wordElements = []; // DOM elements cache
+        
         let currentWordIndex = 0;
         let currentCharIndex = 0;
         
-        let testDuration = 30; // Detik
-        let timeLeft = testDuration;
         let startTime = null;
         let timerInterval = null;
-        let wpmInterval = null;
         let isTyping = false;
         let isFinished = false;
 
-        // Metric Counters
-        let correctKeystrokes = 0;
-        let errorKeystrokes = 0;
-        let extraKeystrokes = 0; // Karakter lebih dalam satu kata
+        // Metric Counters (For Boosted Feel-Good Algo)
+        let correctChars = 0;
+        let errorChars = 0;
+        let extraChars = 0; 
 
-        // DOM Elements
+        // --- DOM Elements ---
+        const typingArea = document.getElementById('typing-area');
         const wordsContainer = document.getElementById('words');
         const caret = document.getElementById('caret');
         const timeDisplay = document.getElementById('time-display');
-        const wpmDisplay = document.getElementById('wpm-display');
-        const resultsScreen = document.getElementById('results-screen');
-        const mainScreen = document.querySelector('main');
+        const wpmLiveDisplay = document.getElementById('wpm-live');
+        const wpmLiveContainer = document.getElementById('wpm-live-container');
         
-        // Inisialisasi Tes
-        function initTest() {
-            words = [];
-            // Generate 150 random words untuk tes (cukup untuk 30-60 detik)
-            for (let i = 0; i < 150; i++) {
-                words.push(wordList[Math.floor(Math.random() * wordList.length)]);
-            }
-            renderWords();
-            updateCaretPosition();
-        }
+        const mainScreen = document.querySelector('main');
+        const configScreen = document.getElementById('test-config');
+        const resultsScreen = document.getElementById('results-screen');
 
-        // Render kata ke dalam DOM HTML
-        function renderWords() {
+        // --- Initialization ---
+        function initTest() {
             wordsContainer.innerHTML = '';
-            words.forEach((word, index) => {
+            wordsContainer.style.transform = 'translateY(0px)';
+            words = [];
+            wordElements = [];
+
+            // Generate ~200 random words from selected dictionary
+            for (let i = 0; i < 200; i++) {
+                const randomWord = currentDictionary[Math.floor(Math.random() * currentDictionary.length)];
+                words.push(randomWord);
+            }
+
+            // Render words to DOM
+            words.forEach((wordText, wIndex) => {
                 const wordEl = document.createElement('div');
                 wordEl.className = 'word';
-                wordEl.dataset.index = index;
-                
-                for (let i = 0; i < word.length; i++) {
+                wordEl.dataset.index = wIndex;
+
+                for (let i = 0; i < wordText.length; i++) {
                     const letterEl = document.createElement('span');
                     letterEl.className = 'letter';
-                    letterEl.textContent = word[i];
+                    letterEl.textContent = wordText[i];
                     wordEl.appendChild(letterEl);
                 }
                 wordsContainer.appendChild(wordEl);
+                wordElements.push(wordEl);
             });
-            wordsContainer.style.transform = 'translateY(0px)';
+
+            // Initial Caret Setup
+            setTimeout(() => { updateCaret(); }, 10);
         }
 
-        // Memperbarui Posisi Caret (Kursor Kuning)
-        function updateCaretPosition() {
-            const wordEls = wordsContainer.children;
-            if (currentWordIndex >= wordEls.length) return;
+        // --- Core Mechanics: Caret & Scrolling ---
+        function updateCaret() {
+            if (currentWordIndex >= wordElements.length) return;
 
-            const currentWordEl = wordEls[currentWordIndex];
-            const letterEls = currentWordEl.children;
+            const wordEl = wordElements[currentWordIndex];
+            const letterEls = wordEl.querySelectorAll('.letter');
             
-            let caretLeft = 0;
-            let caretTop = currentWordEl.offsetTop;
+            let targetX = 0;
+            let targetY = wordEl.offsetTop;
 
             if (currentCharIndex < letterEls.length) {
-                // Di tengah kata
-                caretLeft = currentWordEl.offsetLeft + letterEls[currentCharIndex].offsetLeft;
+                // Before a letter
+                const letterEl = letterEls[currentCharIndex];
+                targetX = letterEl.offsetLeft;
             } else {
-                // Di akhir kata (setelah huruf terakhir)
+                // At the end of the word
                 const lastLetter = letterEls[letterEls.length - 1];
-                caretLeft = currentWordEl.offsetLeft + lastLetter.offsetLeft + lastLetter.offsetWidth;
+                targetX = lastLetter.offsetLeft + lastLetter.offsetWidth;
             }
 
-            caret.style.left = caretLeft + 'px';
-            caret.style.top = caretTop + 'px';
+            // Smoothly move caret via transform
+            caret.style.transform = `translate(${targetX}px, ${targetY}px)`;
 
-            // Auto-scroll jika mengetik sudah mencapai baris ke-3
-            if (caretTop > 80) { 
-                const lineShift = (caretTop - 40); // geser kata ke atas
-                wordsContainer.style.transform = `translateY(-${lineShift}px)`;
+            // Smooth scrolling (keep current line near top)
+            // A line is roughly 40-50px height depending on font.
+            if (targetY > 60) {
+                // If we drop to line 2 or 3, scroll container up
+                const scrollAmount = targetY; 
+                wordsContainer.style.transform = `translateY(-${scrollAmount}px)`;
+                
+                // Adjust caret visually because container moved
+                caret.style.transform = `translate(${targetX}px, 0px)`;
+            } else {
+                wordsContainer.style.transform = `translateY(0px)`;
             }
         }
 
-        // ALGORITMA FEEL-GOOD WPM (Nilai Inflasi / Boosted)
+        // --- Core Mechanics: Boosted WPM Algorithm ---
         function calculateWPM() {
             if (!startTime) return 0;
+            
             const now = Date.now();
-            const timeElapsed = (now - startTime) / 1000 / 60; // dalam menit
-            
-            if (timeElapsed <= 0) return 0;
+            let elapsedMins = (now - startTime) / 1000 / 60;
+            if (isFinished) elapsedMins = testDuration / 60;
+            if (elapsedMins <= 0) return 0;
 
-            // --- RUMUS KUSTOM ---
-            // Pengali (Multiplier) tinggi: Tiap ketikan benar dianggap ~4.5 karakter.
-            // Penalti sangat rendah: Salah ketik hanya dikurangi 0.2
-            const effectiveCorrect = correctKeystrokes * 4.5;
-            const minimalPenalty = errorKeystrokes * 0.2;
-            
-            const rawScore = (effectiveCorrect - minimalPenalty) / 5; // Dibagi 5 (standar panjang 1 kata)
-            
-            let wpm = Math.round(rawScore / timeElapsed);
-            
-            // Limit WPM minimal 0
-            if (wpm < 0) wpm = 0;
-            
-            return wpm;
+            // THE FEEL-GOOD MAGIC:
+            // 1. Massive multiplier for correct characters (~4.5x boost).
+            // 2. Extremely minimal penalty for errors (only -0.1 per error char).
+            const effectiveScore = (correctChars * 4.5) - (errorChars * 0.1) - (extraChars * 0.1);
+            const wpm = (effectiveScore / 5) / elapsedMins;
+
+            return Math.max(0, Math.round(wpm)); // No negative WPM
         }
 
-        // Memulai Timer
+        // --- Timer Handling ---
         function startTimer() {
             isTyping = true;
             startTime = Date.now();
-            caret.classList.remove('blink'); // Hentikan kedip saat ngetik
+            caret.classList.remove('blink');
+            wpmLiveContainer.classList.remove('hidden');
+            configScreen.classList.add('opacity-0', 'pointer-events-none'); // Fade out top config like real MT
 
             timerInterval = setInterval(() => {
-                timeLeft--;
+                timeElapsed = Math.floor((Date.now() - startTime) / 1000);
+                timeLeft = testDuration - timeElapsed;
+                
+                if (timeLeft < 0) timeLeft = 0;
                 timeDisplay.textContent = timeLeft;
+                wpmLiveDisplay.textContent = calculateWPM();
 
                 if (timeLeft <= 0) {
                     endTest();
                 }
-            }, 1000);
-
-            // Update live WPM per 100ms agar terasa responsif
-            wpmInterval = setInterval(() => {
-                wpmDisplay.textContent = calculateWPM();
-            }, 100);
+            }, 250); // Fast interval for snappy updates
         }
 
-        // Menyelesaikan Tes
-        function endTest() {
-            isFinished = true;
-            clearInterval(timerInterval);
-            clearInterval(wpmInterval);
-            
-            const finalWpm = calculateWPM();
-            const totalKeys = correctKeystrokes + errorKeystrokes + extraKeystrokes;
-            let accuracy = 100;
-            if (totalKeys > 0) {
-                // Akurasi standar (tetap masuk akal)
-                accuracy = Math.round((correctKeystrokes / totalKeys) * 100);
-            }
-
-            // Update layar hasil
-            document.getElementById('res-wpm').textContent = finalWpm;
-            document.getElementById('res-acc').textContent = accuracy + '%';
-            document.getElementById('res-correct').textContent = correctKeystrokes;
-            document.getElementById('res-error').textContent = errorKeystrokes;
-            document.getElementById('res-extra').textContent = extraKeystrokes;
-            document.getElementById('res-missed').textContent = 0; // Simplified
-
-            // Ganti Layar
-            mainScreen.style.display = 'none';
-            resultsScreen.style.display = 'flex';
-        }
-
-        // Restart Tes
-        function resetTest() {
-            clearInterval(timerInterval);
-            clearInterval(wpmInterval);
-            isTyping = false;
-            isFinished = false;
-            startTime = null;
-            timeLeft = testDuration;
-            
-            currentWordIndex = 0;
-            currentCharIndex = 0;
-            correctKeystrokes = 0;
-            errorKeystrokes = 0;
-            extraKeystrokes = 0;
-
-            timeDisplay.textContent = timeLeft;
-            wpmDisplay.textContent = '0';
-            caret.classList.add('blink');
-
-            mainScreen.style.display = 'flex';
-            resultsScreen.style.display = 'none';
-
-            initTest();
-        }
-
-        // Event Listener untuk Tombol Restart di UI
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            resetTest();
-            // Lepas fokus dari tombol agar spacebar/enter tidak trigger tombol lagi
-            document.getElementById('restart-btn').blur(); 
-        });
-
-        // Event Listener Utama: Mendengarkan Input Keyboard Global
+        // --- Input Handling ---
         window.addEventListener('keydown', (e) => {
             if (isFinished) {
                 if (e.key === 'Tab') {
@@ -383,97 +439,237 @@
                 return;
             }
 
-            // Tombol Tab untuk reset instan
+            // Quick Restart
             if (e.key === 'Tab') {
                 e.preventDefault();
                 resetTest();
                 return;
             }
 
-            // Abaikan tombol modifier
-            const isModifier = e.ctrlKey || e.altKey || e.metaKey;
-            if (isModifier) return;
-            // Abaikan tombol fungsi, shift, dll
+            // Ignore modifiers
+            if (e.ctrlKey || e.altKey || e.metaKey) return;
             if (e.key.length > 1 && e.key !== 'Backspace' && e.key !== ' ') return;
+            if (e.key === 'Escape') return;
 
-            // Mulai waktu pada ketikan pertama
-            if (!isTyping) {
+            // Start typing on first valid keypress
+            if (!isTyping && (e.key.length === 1 || e.key === 'Backspace')) {
                 startTimer();
             }
 
-            const wordEls = wordsContainer.children;
-            const currentWordEl = wordEls[currentWordIndex];
-            const letterEls = currentWordEl.children;
-            const targetWord = words[currentWordIndex];
+            e.preventDefault(); // Prevent accidental browser scrolling with space
 
+            const wordEl = wordElements[currentWordIndex];
+            const letterEls = Array.from(wordEl.querySelectorAll('.letter'));
+            const expectedWord = words[currentWordIndex];
+
+            // 1. HANDLE BACKSPACE
             if (e.key === 'Backspace') {
                 if (currentCharIndex > 0) {
+                    // Normal backspace within word
                     currentCharIndex--;
                     const letterToClear = letterEls[currentCharIndex];
                     
-                    // Jika itu karakter ekstra (merah di akhir), hapus elemennya
                     if (letterToClear.classList.contains('extra')) {
                         letterToClear.remove();
-                        // Kurangi error count karena dihapus (optional, tp kita buat penalty minim saja)
-                        // extraKeystrokes--; 
+                        // Minimal penalty reduction (optional, feel-good keeps it forgiving)
+                        extraChars = Math.max(0, extraChars - 1);
                     } else {
-                        // Reset kelas CSS kembali abu-abu
-                        letterToClear.className = 'letter';
+                        // Revert state
+                        if (letterToClear.classList.contains('correct')) correctChars--;
+                        // We do NOT decrement errorChars aggressively to maintain a tiny penalty, 
+                        // but you could if you want pure 0 penalty. 
+                        
+                        letterToClear.classList.remove('correct', 'error');
                     }
                 } else if (currentWordIndex > 0) {
-                    // Balik ke kata sebelumnya jika belum ada karakter diketik di kata saat ini
-                    currentWordIndex--;
-                    const prevWordEl = wordEls[currentWordIndex];
-                    // Atur index karakter ke ujung kata sebelumnya (termasuk huruf ekstra jika ada)
-                    currentCharIndex = prevWordEl.children.length;
+                    // Backspace to previous word (Monkeytype logic: only if previous word has errors)
+                    const prevWordEl = wordElements[currentWordIndex - 1];
+                    const prevLetters = prevWordEl.querySelectorAll('.letter');
+                    
+                    let hasError = false;
+                    prevLetters.forEach(l => {
+                        if (l.classList.contains('error') || l.classList.contains('extra')) hasError = true;
+                    });
+                    
+                    // If not completely correct or length mismatch, allow going back
+                    if (hasError || prevLetters.length !== words[currentWordIndex-1].length) {
+                        currentWordIndex--;
+                        currentCharIndex = prevWordEl.querySelectorAll('.letter').length;
+                        wordEl.classList.remove('error-underline'); // clear current err line just in case
+                    }
                 }
-                updateCaretPosition();
+                updateCaret();
                 return;
             }
 
+            // 2. HANDLE SPACE
             if (e.key === ' ') {
-                e.preventDefault(); // cegah scroll web
-                if (currentCharIndex > 0) {
-                    // Pindah ke kata berikutnya
-                    currentWordIndex++;
-                    currentCharIndex = 0;
-                    updateCaretPosition();
+                if (currentCharIndex === 0) return; // Don't allow space if haven't typed anything in current word
+                
+                // Check if current word is incomplete or has errors to show red underline
+                let isWordPerfect = true;
+                if (currentCharIndex < expectedWord.length) isWordPerfect = false;
+                letterEls.forEach(l => {
+                    if (l.classList.contains('error') || l.classList.contains('extra')) isWordPerfect = false;
+                });
+
+                if (!isWordPerfect) {
+                    wordEl.classList.add('error-underline');
+                } else {
+                    wordEl.classList.remove('error-underline');
                 }
+
+                currentWordIndex++;
+                currentCharIndex = 0;
+                updateCaret();
                 return;
             }
 
-            // Karakter Biasa Diketik (a-z, dst)
+            // 3. HANDLE TYPING (Letters)
             if (e.key.length === 1) {
-                // Jika mengetik lebih panjang dari kata sebenarnya
-                if (currentCharIndex >= targetWord.length) {
-                    extraKeystrokes++;
-                    const extraSpan = document.createElement('span');
-                    extraSpan.className = 'letter extra';
-                    extraSpan.textContent = e.key;
-                    currentWordEl.appendChild(extraSpan);
-                    currentCharIndex++;
+                // Overshooting (typing more letters than the word has)
+                if (currentCharIndex >= expectedWord.length) {
+                    // Limit max extra characters per word to 10 to prevent abuse/DOM overflow
+                    if (currentCharIndex < expectedWord.length + 10) {
+                        const extraSpan = document.createElement('span');
+                        extraSpan.className = 'letter extra';
+                        extraSpan.textContent = e.key;
+                        wordEl.appendChild(extraSpan);
+                        extraChars++;
+                        currentCharIndex++;
+                    }
                 } else {
-                    // Mengecek benar/salah huruf
-                    const expectedChar = targetWord[currentCharIndex];
-                    const letterEl = letterEls[currentCharIndex];
+                    // Normal typing inside word bounds
+                    const expectedChar = expectedWord[currentCharIndex];
+                    const targetSpan = letterEls[currentCharIndex];
 
                     if (e.key === expectedChar) {
-                        letterEl.classList.add('text-mt-textCorrect');
-                        correctKeystrokes++;
+                        targetSpan.classList.add('correct');
+                        correctChars++;
                     } else {
-                        letterEl.classList.add('text-mt-textError');
-                        errorKeystrokes++;
+                        targetSpan.classList.add('error');
+                        errorChars++;
                     }
                     currentCharIndex++;
                 }
-                updateCaretPosition();
+                updateCaret();
             }
         });
 
-        // Jalankan saat pertama kali buka web
-        window.onload = () => {
+        // --- End Test & Reset ---
+        function endTest() {
+            isFinished = true;
+            clearInterval(timerInterval);
+            
+            const finalWpm = calculateWPM();
+            const totalKeys = correctChars + errorChars + extraChars;
+            let accuracy = 100;
+            if (totalKeys > 0) {
+                accuracy = Math.round((correctChars / totalKeys) * 100);
+            }
+
+            // Populate Results UI
+            document.getElementById('res-wpm').textContent = finalWpm;
+            document.getElementById('res-acc').textContent = accuracy + '%';
+            document.getElementById('res-correct').textContent = correctChars;
+            document.getElementById('res-error').textContent = errorChars;
+            document.getElementById('res-extra').textContent = extraChars;
+            document.getElementById('res-type-time').textContent = `time ${testDuration}s`;
+            document.getElementById('res-type-lang').textContent = currentLanguage === 'en' ? 'english' : 'indonesian';
+            document.getElementById('res-time').textContent = `${testDuration}s`;
+
+            // Switch screens
+            mainScreen.classList.add('hidden');
+            configScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            resultsScreen.classList.add('flex');
+        }
+
+        function resetTest() {
+            clearInterval(timerInterval);
+            
+            isTyping = false;
+            isFinished = false;
+            startTime = null;
+            timeLeft = testDuration;
+            
+            currentWordIndex = 0;
+            currentCharIndex = 0;
+            correctChars = 0;
+            errorChars = 0;
+            extraChars = 0;
+
+            timeDisplay.textContent = timeLeft;
+            wpmLiveDisplay.textContent = '0';
+            wpmLiveContainer.classList.add('hidden');
+            caret.classList.add('blink');
+            
+            configScreen.classList.remove('opacity-0', 'pointer-events-none');
+            
+            // Switch screens back
+            resultsScreen.classList.add('hidden');
+            resultsScreen.classList.remove('flex');
+            configScreen.classList.remove('hidden');
+            mainScreen.classList.remove('hidden');
+
             initTest();
-        };
+            // Force blur on any active element so space/enter doesn't trigger UI
+            document.activeElement.blur(); 
+        }
+
+        // --- UI Interactions ---
+
+        // Time Selection
+        document.querySelectorAll('.time-opt').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // Update UI visually
+                document.querySelectorAll('.time-opt').forEach(b => {
+                    b.classList.remove('text-mt-primary');
+                    b.classList.add('hover:text-mt-textCorrect');
+                });
+                e.target.classList.add('text-mt-primary');
+                e.target.classList.remove('hover:text-mt-textCorrect');
+                
+                // Update logic
+                testDuration = parseInt(e.target.dataset.time);
+                resetTest();
+            });
+        });
+
+        // Language Dropdown
+        const langDropdown = document.getElementById('lang-dropdown');
+        function toggleLanguageMenu() {
+            langDropdown.classList.toggle('hidden');
+        }
+
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            document.getElementById('current-lang').textContent = lang === 'en' ? 'english' : 'indonesian';
+            langDropdown.classList.add('hidden');
+            
+            if (lang === 'en') {
+                currentDictionary = wordsEn;
+            } else {
+                currentDictionary = wordsId;
+            }
+            
+            resetTest();
+        }
+
+        // Close dropdown if clicked outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.group')) {
+                langDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Recalculate caret on window resize to prevent misalignment
+        window.addEventListener('resize', () => {
+            if (!isFinished) updateCaret();
+        });
+
+        // Start
+        window.onload = initTest;
 
     </script>
 </body>
