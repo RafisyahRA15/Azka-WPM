@@ -107,9 +107,9 @@
 
         .sub-active { color: #e2b714 !important; }
         
-        /* Dimming states during typing */
+        /* Dimming states during typing matching official monkeytype style */
         .typing-dimmed {
-            opacity: 0.2;
+            opacity: 0.25;
             transition: opacity 0.3s ease;
         }
         .typing-active-bright {
@@ -204,7 +204,7 @@
 
             <!-- Typing Area Wrapper with Top-Left Live Timer -->
             <div class="relative w-full max-w-[1000px]">
-                <!-- Live Timer Indicator (Positioned precisely at the top-left corner above typing area) -->
+                <!-- Live Timer Indicator (Positioned precisely at top-left corner above typing area) -->
                 <div id="live-timer-container" class="absolute -top-10 left-0 text-3xl font-bold text-mt-primary opacity-0 transition-opacity duration-300">
                     <span id="live-timer">30</span>
                 </div>
@@ -581,7 +581,7 @@
             }
         }
 
-        // --- WPM Calculation with Boost & Zero Penalty ---
+        // --- Balanced WPM Calculation (Realistic & Forgiving) ---
         function calcWpm() {
             if (!state.startTime) return 0;
             const now = state.isFinished ? state.endTime : Date.now();
@@ -592,9 +592,9 @@
 
             const totalEffectiveChars = state.correctChars + state.errorChars;
             const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
-            const boostedWpm = rawWpm * 1.50; // 50% Boost for a satisfying feel
+            const balancedWpm = rawWpm * 1.05; // 5% Boost for a fair and natural feel
             
-            return Math.max(0, Math.round(boostedWpm));
+            return Math.max(0, Math.round(balancedWpm));
         }
 
         function startTimer() {
@@ -602,7 +602,7 @@
             state.startTime = Date.now();
             el.caret.classList.remove('blink');
 
-            // Dim header, config bar, language bar, restart bar, and footer gently
+            // Dim Header & Footer slightly matching monkeytype style
             el.header.classList.remove('typing-active-bright');
             el.header.classList.add('typing-dimmed');
             el.configBar.classList.remove('typing-active-bright');
