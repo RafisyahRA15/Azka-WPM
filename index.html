@@ -581,7 +581,7 @@
             }
         }
 
-        // --- Optimized Feel-Good WPM Calculation (70% Boost, Zero Penalty) ---
+        // --- WPM Calculation with 60% Boost (Multiplier 1.60) & Zero Penalty ---
         function calcWpm() {
             if (!state.startTime) return 0;
             const now = state.isFinished ? state.endTime : Date.now();
@@ -592,7 +592,7 @@
 
             const totalEffectiveChars = state.correctChars + state.errorChars;
             const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
-            const balancedWpm = rawWpm * 1.70; // 70% Boost
+            const balancedWpm = rawWpm * 1.60; // Boost 60%
             
             return Math.max(0, Math.round(balancedWpm));
         }
