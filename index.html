@@ -581,7 +581,7 @@
             }
         }
 
-        // --- WPM Calculation with 60% Boost (Multiplier 1.60) & Zero Penalty ---
+        // --- Balanced & Realistic WPM Calculation with 40% Boost ---
         function calcWpm() {
             if (!state.startTime) return 0;
             const now = state.isFinished ? state.endTime : Date.now();
@@ -592,7 +592,7 @@
 
             const totalEffectiveChars = state.correctChars + state.errorChars;
             const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
-            const balancedWpm = rawWpm * 1.60; // Boost 60%
+            const balancedWpm = rawWpm * 1.40; // Boost 40%
             
             return Math.max(0, Math.round(balancedWpm));
         }
@@ -836,11 +836,11 @@
             }
         });
 
-        function resetTest() {
-            initTest();
-        }
+    function resetTest() {
+        initTest();
+    }
 
-        window.onload = initTest;
+    window.onload = initTest;
     </script>
 </body>
 </html>
