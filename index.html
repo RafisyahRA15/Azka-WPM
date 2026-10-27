@@ -185,16 +185,22 @@
             </div>
 
             <!-- Language Indicator (Above text) -->
-            <div id="lang-bar" class="w-full max-w-[1000px] flex justify-center mb-6 fade-transition">
-                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors group" onclick="toggleLanguage()">
+            <div id="lang-bar" class="w-full max-w-[1000px] flex justify-center mb-6 fade-transition relative">
+                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors group" onclick="toggleLangMenu(event)">
                     <i class="fa-solid fa-globe text-sm"></i>
                     <span id="current-lang-display" class="text-sm font-medium">indonesian</span>
                 </div>
-            </div>
-
-            <!-- Live Stats (Timer overlay, usually hidden in Monkeytype until typed, or minimal) -->
-            <div id="live-timer" class="absolute left-10 top-1/3 text-mt-primary text-2xl font-bold opacity-0 transition-opacity duration-200">
-                30
+                
+                <!-- Dropdown Menu Bahasa -->
+                <div id="lang-dropdown" class="absolute top-8 bg-mt-dark rounded-lg shadow-xl flex-col overflow-hidden hidden z-50 border border-mt-bg w-48 text-sm">
+                    <div onclick="selectLang('english')" class="px-4 py-2 cursor-pointer hover:bg-mt-textActive/10 hover:text-mt-textActive transition-colors">english</div>
+                    <div onclick="selectLang('english 1k')" class="px-4 py-2 cursor-pointer hover:bg-mt-textActive/10 hover:text-mt-textActive transition-colors">english 1k</div>
+                    <div onclick="selectLang('english 10k')" class="px-4 py-2 cursor-pointer hover:bg-mt-textActive/10 hover:text-mt-textActive transition-colors border-b border-mt-bg">english 10k</div>
+                    
+                    <div onclick="selectLang('indonesian')" class="px-4 py-2 cursor-pointer hover:bg-mt-textActive/10 hover:text-mt-textActive transition-colors">indonesian</div>
+                    <div onclick="selectLang('indonesian 1k')" class="px-4 py-2 cursor-pointer hover:bg-mt-textActive/10 hover:text-mt-textActive transition-colors">indonesian 1k</div>
+                    <div onclick="selectLang('indonesian 10k')" class="px-4 py-2 cursor-pointer hover:bg-mt-textActive/10 hover:text-mt-textActive transition-colors">indonesian 10k</div>
+                </div>
             </div>
 
             <!-- Typing Area -->
@@ -300,7 +306,12 @@
         // --- Dictionaries ---
         const dicts = {
             'english': ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"],
-            'indonesian': ["maaf", "ayo", "tetapi", "melainkan", "selain", "karena", "berapa", "kata", "serta", "saya", "lagi", "jika", "sehingga", "muda", "tunggu", "tempat", "cahaya", "banjir", "sabar", "lagipula", "mereka", "kemudian", "jam", "bahasa", "sekali", "nama", "yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", "akan", "pada", "juga", "ke", "tersebut", "bisa", "ada", "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", "sendiri", "belum", "bukan", "antara", "sama", "sampai", "waktu", "kamu", "bahkan", "lalu", "bahwa", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "besar"]
+            'english 1k': ["accept", "accident", "balance", "beautiful", "captain", "challenge", "dangerous", "decision", "education", "experience", "familiar", "frequent", "generate", "government", "happened", "important", "impossible", "journey", "knowledge", "language", "machine", "measure", "necessary", "number", "object", "original", "particular", "position", "question", "reason", "sentence", "suddenly", "temperature", "understand", "various", "weight", "written", "young", "yourself", "history", "imagine", "information", "interest", "island", "listen", "material", "morning", "natural", "perhaps", "practice", "prepare", "problem", "promise", "receive", "remember", "science", "serious", "special", "surface", "system", "though", "usually", "village", "weather", "whether", "window", "without", "woman", "wonder"],
+            'english 10k': ["aberration", "acquiesce", "alacrity", "amiable", "arcane", "avarice", "brazen", "brusque", "cajole", "callous", "candor", "chide", "circumspect", "clandestine", "coerce", "coherent", "complacency", "confidant", "connive", "cumulative", "cynical", "debacle", "deferential", "deride", "despot", "diligent", "elated", "eloquent", "embezzle", "empathy", "enmity", "erudite", "extol", "fabricate", "feral", "forsake", "fractious", "furtive", "gluttony", "gratuitous", "haughty", "hypocrisy", "impeccable", "impertinent", "implacable", "impudent", "incisive", "indolent", "inept", "infamy", "inhibit", "innate", "insatiable", "insular", "intrepid", "inveterate", "jubilant", "knell", "lithe", "lurid", "maverick", "maxim", "meticulous", "modicum", "morose", "myriad", "nadir", "nomadic", "novice", "nuance", "oblivious", "obsequious", "panacea"],
+            
+            'indonesian': ["maaf", "ayo", "tetapi", "melainkan", "selain", "karena", "berapa", "kata", "serta", "saya", "lagi", "jika", "sehingga", "muda", "tunggu", "tempat", "cahaya", "banjir", "sabar", "lagipula", "mereka", "kemudian", "jam", "bahasa", "sekali", "nama", "yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", "akan", "pada", "juga", "ke", "tersebut", "bisa", "ada", "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", "sendiri", "belum", "bukan", "antara", "sama", "sampai", "waktu", "kamu", "bahkan", "lalu", "bahwa", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "besar"],
+            'indonesian 1k': ["menggunakan", "perkembangan", "masyarakat", "pemerintah", "berbagai", "informasi", "kesehatan", "pendidikan", "pengalaman", "keputusan", "perusahaan", "lingkungan", "kegiatan", "kemampuan", "teknologi", "kebutuhan", "penelitian", "pembangunan", "pelayanan", "pentingnya", "sebenarnya", "kesempatan", "perubahan", "hubungan", "penggunaan", "masalah", "terjadi", "kehidupan", "merupakan", "berdasarkan", "memberikan", "sebelumnya", "peningkatan", "melakukan", "terutama", "kondisi", "wilayah", "keluarga", "ekonomi", "nasional", "seharusnya", "kebijakan", "perbedaan", "keadaan", "perhatian", "pertanyaan", "pengaruh", "kendaraan", "pengetahuan", "masyarakat", "keterampilan", "pertumbuhan", "pengelolaan", "keselamatan", "kesejahteraan", "kemungkinan", "keterlibatan", "keamanan", "pembelajaran", "kewajiban", "keberhasilan", "keuntungan"],
+            'indonesian 10k': ["konstitusional", "implementasi", "karakteristik", "infrastruktur", "komprehensif", "signifikansi", "transformasi", "representasi", "intelektualitas", "berkesinambungan", "proporsional", "restrukturisasi", "diversifikasi", "kredibilitas", "fleksibilitas", "rekomendasi", "klasifikasi", "interpretasi", "manifestasi", "konsekuensi", "akuntabilitas", "transparansi", "sinkronisasi", "kapitalisasi", "birokrasi", "hegemoni", "legitimasi", "spekulasi", "intervensi", "manipulasi", "korelasi", "implikasi", "relevansi", "substansi", "fluktuasi", "indikator", "perspektif", "kualifikasi", "kuantitatif", "kualitatif", "kompetensi", "optimalisasi", "aktualisasi", "dokumentasi", "instrumental", "koordinasi", "konsolidasi", "identifikasi", "spesifikasi", "klarifikasi", "verifikasi", "konfirmasi", "akomodasi", "artikulasi", "eksplorasi", "orientasi", "partisipasi", "sosialisasi", "rehabilitasi", "apresiasi", "kalkulasi", "akumulasi"]
         };
 
         // --- App State ---
@@ -332,7 +343,6 @@
         const el = {
             wordsContainer: document.getElementById('words-container'),
             caret: document.getElementById('caret'),
-            liveTimer: document.getElementById('live-timer'),
             
             // UI fade elements
             header: document.getElementById('header-el'),
@@ -357,11 +367,29 @@
             resCharExtra: document.getElementById('res-char-extra'),
         };
 
-        function toggleLanguage() {
-            state.language = state.language === 'indonesian' ? 'english' : 'indonesian';
-            el.langDisplay.textContent = state.language;
+        function toggleLangMenu(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('lang-dropdown');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        function selectLang(lang) {
+            state.language = lang;
+            el.langDisplay.textContent = lang;
+            document.getElementById('lang-dropdown').classList.add('hidden');
+            document.getElementById('lang-dropdown').classList.remove('flex');
             resetTest();
         }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            const menu = document.getElementById('lang-dropdown');
+            if (menu && !menu.classList.contains('hidden') && !e.target.closest('#lang-bar')) {
+                menu.classList.add('hidden');
+                menu.classList.remove('flex');
+            }
+        });
 
         // --- Initialization ---
         function initTest() {
@@ -382,16 +410,6 @@
             state.endTime = null;
             clearInterval(state.timerInterval);
 
-            // Show UI Elements
-            el.header.classList.remove('fade-out');
-            el.configBar.classList.remove('fade-out');
-            el.langBar.classList.remove('fade-out');
-            el.restartBar.classList.remove('fade-out');
-            el.footer.classList.remove('fade-out');
-            
-            el.liveTimer.classList.remove('opacity-100');
-            el.liveTimer.classList.add('opacity-0');
-
             el.caret.classList.add('blink');
             el.caret.classList.remove('hidden-caret');
             el.resultsScreen.classList.add('hidden');
@@ -404,7 +422,6 @@
                 state.wordsList.push(dict[Math.floor(Math.random() * dict.length)]);
             }
             state.timeLeft = state.timeValue;
-            el.liveTimer.textContent = state.timeLeft;
 
             // Build DOM
             state.wordsList.forEach((wordText) => {
@@ -478,16 +495,6 @@
             state.isTyping = true;
             state.startTime = Date.now();
             el.caret.classList.remove('blink');
-            
-            // Fade out UI
-            el.header.classList.add('fade-out');
-            el.configBar.classList.add('fade-out');
-            el.langBar.classList.add('fade-out');
-            el.restartBar.classList.add('fade-out');
-            el.footer.classList.add('fade-out');
-            
-            el.liveTimer.classList.remove('opacity-0');
-            el.liveTimer.classList.add('opacity-100');
 
             state.timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
@@ -496,7 +503,6 @@
                     state.timeLeft = 0;
                     endTest();
                 }
-                el.liveTimer.textContent = state.timeLeft;
             }, 200);
         }
 
@@ -525,10 +531,6 @@
             el.mainContent.classList.add('hidden');
             el.resultsScreen.classList.remove('hidden');
             el.resultsScreen.classList.add('flex');
-            
-            // Bring back UI in results
-            el.header.classList.remove('fade-out');
-            el.footer.classList.remove('fade-out');
         }
 
         // --- Input Handling ---
