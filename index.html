@@ -107,7 +107,7 @@
 
         .sub-active { color: #e2b714 !important; }
         
-        /* Dimming states during typing matching official monkeytype style */
+        /* Dimming states matching official monkeytype style during typing */
         .typing-dimmed {
             opacity: 0.25;
             transition: opacity 0.3s ease;
@@ -124,7 +124,7 @@
     <div class="w-full max-w-[1200px] mx-auto px-8 flex flex-col h-screen justify-between">
         
         <!-- Header -->
-        <header id="header-el" class="w-full pt-10 pb-6 flex items-center justify-between z-50 typing-active-bright">
+        <header id="header-el" class="w-full pt-10 pb-6 flex items-center justify-between z-50 typing-active-bright transition-opacity duration-300">
             <!-- Left side: Logo and Icons -->
             <div class="flex items-center gap-6">
                 <!-- Logo Block -->
@@ -158,7 +158,7 @@
         <main class="flex-grow flex flex-col justify-center relative w-full items-center">
             
             <!-- Config Bar -->
-            <div id="config-bar" class="w-full flex justify-center mb-8 gap-3 text-[0.8rem] typing-active-bright">
+            <div id="config-bar" class="w-full flex justify-center mb-8 gap-3 text-[0.8rem] typing-active-bright transition-opacity duration-300">
                 <!-- Box 1 -->
                 <div class="bg-mt-dark rounded-lg flex items-center px-4 py-2 gap-4">
                     <span class="cursor-pointer hover:text-mt-textActive transition-colors flex items-center gap-2"><i class="fa-solid fa-at text-[0.7rem]"></i> punctuation</span>
@@ -184,7 +184,7 @@
             </div>
 
             <!-- Language Indicator (Above text) -->
-            <div id="lang-bar" class="w-full max-w-[1000px] flex justify-center mb-4 relative z-40 typing-active-bright">
+            <div id="lang-bar" class="w-full max-w-[1000px] flex justify-center mb-4 relative z-40 typing-active-bright transition-opacity duration-300">
                 <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors group" onclick="toggleLangMenu(event)">
                     <i class="fa-solid fa-globe text-sm"></i>
                     <span id="current-lang-display" class="text-sm font-medium">indonesian</span>
@@ -219,7 +219,7 @@
             </div>
             
             <!-- Restart & Shortcuts -->
-            <div id="restart-bar" class="flex flex-col items-center mt-10 w-full typing-active-bright">
+            <div id="restart-bar" class="flex flex-col items-center mt-10 w-full typing-active-bright transition-opacity duration-300">
                 <!-- Restart Icon -->
                 <i class="fa-solid fa-arrow-rotate-right text-xl hover:text-mt-textActive cursor-pointer transition-colors mb-4" onclick="resetTest()"></i>
                 
@@ -283,7 +283,7 @@
         </main>
 
         <!-- Footer -->
-        <footer id="footer-el" class="w-full py-6 flex items-center justify-between text-[0.75rem] z-30 typing-active-bright">
+        <footer id="footer-el" class="w-full py-6 flex items-center justify-between text-[0.75rem] z-30 typing-active-bright transition-opacity duration-300">
             <!-- Left: Links -->
             <div class="flex gap-5 items-center">
                 <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-solid fa-envelope"></i> contact</div>
@@ -316,7 +316,7 @@
             'english 1k': ["accept", "accident", "balance", "beautiful", "captain", "challenge", "dangerous", "decision", "education", "experience", "familiar", "frequent", "generate", "government", "happened", "important", "impossible", "journey", "knowledge", "language", "machine", "measure", "necessary", "number", "object", "original", "particular", "position", "question", "reason", "sentence", "suddenly", "temperature", "understand", "various", "weight", "written", "young", "yourself", "history", "imagine", "information", "interest", "island", "listen", "material", "morning", "natural", "perhaps", "practice", "prepare", "problem", "promise", "receive", "remember", "science", "serious", "special", "surface", "system", "though", "usually", "village", "weather", "whether", "window", "without", "woman", "wonder"],
             'english 10k': ["aberration", "acquiesce", "alacrity", "amiable", "arcane", "avarice", "brazen", "brusque", "cajole", "callous", "candor", "chide", "circumspect", "clandestine", "coerce", "coherent", "complacency", "confidant", "connive", "cumulative", "cynical", "debacle", "deferential", "deride", "despot", "diligent", "elated", "eloquent", "embezzle", "empathy", "enmity", "erudite", "extol", "fabricate", "feral", "forsake", "fractious", "furtive", "gluttony", "gratuitous", "haughty", "hypocrisy", "impeccable", "impertinent", "implacable", "impudent", "incisive", "indolent", "inept", "infamy", "inhibit", "innate", "insatiable", "insular", "intrepid", "inveterate", "jubilant", "knell", "lithe", "lurid", "maverick", "maxim", "meticulous", "modicum", "morose", "myriad", "nadir", "nomadic", "novice", "nuance", "oblivious", "obsequious", "panacea"],
             
-            'indonesian': ["maaf", "ayo", "tetapi", "melainkan", "selain", "karena", "berapa", "kata", "serta", "saya", "lagi", "jika", "sehingga", "muda", "tunggu", "tempat", "cahaya", "banjir", "sabar", "lagipula", "mereka", "kemudian", "jam", "bahasa", "sekali", "nama", "yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", "akan", "pada", "juga", "ke", "tersebut", "bisa", "ada", "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", "sendiri", "belum", "bukan", "antara", "sama", "sampai", "waktu", "kamu", "bahkan", "lalu", "bahbah", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "besar"],
+            'indonesian': ["maaf", "ayo", "tetapi", "melainkan", "selain", "karena", "berapa", "kata", "serta", "saya", "lagi", "jika", "sehingga", "muda", "tunggu", "tempat", "cahaya", "banjir", "sabar", "lagipula", "mereka", "kemudian", "jam", "bahasa", "sekali", "nama", "yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", "akan", "pada", "juga", "ke", "tersebut", "bisa", "ada", "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", "sendiri", "belum", "bukan", "antara", "sama", "sampai", "waktu", "kamu", "bahkan", "lalu", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "besar"],
             'indonesian 1k': ["menggunakan", "perkembangan", "masyarakat", "pemerintah", "berbagai", "informasi", "kesehatan", "pendidikan", "pengalaman", "keputusan", "perusahaan", "lingkungan", "kegiatan", "kemampuan", "teknologi", "kebutuhan", "penelitian", "pembangunan", "pelayanan", "pentingnya", "sebenarnya", "kesempatan", "perubahan", "hubungan", "penggunaan", "masalah", "terjadi", "kehidupan", "merupakan", "berdasarkan", "memberikan", "sebelumnya", "peningkatan", "melakukan", "terutama", "kondisi", "wilayah", "keluarga", "ekonomi", "nasional", "seharusnya", "kebijakan", "perbedaan", "keadaan", "perhatian", "pertanyaan", "pengaruh", "kendaraan", "pengetahuan", "keterampilan", "pertumbuhan", "pengelolaan", "keselamatan", "kesejahteraan", "kemungkinan", "keterlibatan", "keamanan", "pembelajaran", "kewajiban", "keberhasilan", "keuntungan"],
             'indonesian 10k': ["konstitusional", "implementasi", "karakteristik", "infrastruktur", "komprehensif", "signifikansi", "transformasi", "representasi", "intelektualitas", "berkesinambungan", "proporsional", "restrukturisasi", "diversifikasi", "kredibilitas", "fleksibilitas", "rekomendasi", "klasifikasi", "interpretasi", "manifestasi", "konsekuensi", "akuntabilitas", "transparansi", "sinkronisasi", "kapitalisasi", "birokrasi", "hegemoni", "legitimasi", "spekulasi", "intervensi", "manipulasi", "korelasi", "implikasi", "relevansi", "substansi", "fluktuasi", "indikator", "perspektif", "kualifikasi", "kuantitatif", "kualitatif", "kompetensi", "optimalisasi", "aktualisasi", "dokumentasi", "instrumental", "koordinasi", "konsolidasi", "identifikasi", "spesifikasi", "klarifikasi", "verifikasi", "konfirmasi", "akomodasi", "artikulasi", "eksplorasi", "orientasi", "partisipasi", "sosialisasi", "rehabilitasi", "apresiasi", "kalkulasi", "akumulasi"]
         };
@@ -581,7 +581,7 @@
             }
         }
 
-        // --- Balanced WPM Calculation (Realistic & Forgiving) ---
+        // --- Balanced & Realistic WPM Calculation (Natural & Forgiving) ---
         function calcWpm() {
             if (!state.startTime) return 0;
             const now = state.isFinished ? state.endTime : Date.now();
@@ -592,7 +592,7 @@
 
             const totalEffectiveChars = state.correctChars + state.errorChars;
             const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
-            const balancedWpm = rawWpm * 1.05; // 5% Boost for a fair and natural feel
+            const balancedWpm = rawWpm * 1.08; // Gentle 8% Boost for a comfortable feel
             
             return Math.max(0, Math.round(balancedWpm));
         }
@@ -602,7 +602,7 @@
             state.startTime = Date.now();
             el.caret.classList.remove('blink');
 
-            // Dim Header & Footer slightly matching monkeytype style
+            // Dim Header & Footer slightly matching monkeytype style during typing
             el.header.classList.remove('typing-active-bright');
             el.header.classList.add('typing-dimmed');
             el.configBar.classList.remove('typing-active-bright');
@@ -660,6 +660,12 @@
             // Bring back full brightness on result screen
             el.header.classList.remove('typing-dimmed');
             el.header.classList.add('typing-active-bright');
+            el.configBar.classList.remove('typing-dimmed');
+            el.configBar.classList.add('typing-active-bright');
+            el.langBar.classList.remove('typing-dimmed');
+            el.langBar.classList.add('typing-active-bright');
+            el.restartBar.classList.remove('typing-dimmed');
+            el.restartBar.classList.add('typing-active-bright');
             el.footer.classList.remove('typing-dimmed');
             el.footer.classList.add('typing-active-bright');
         }
