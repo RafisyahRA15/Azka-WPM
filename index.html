@@ -107,13 +107,12 @@
 
         .sub-active { color: #e2b714 !important; }
         
-        /* Smooth Fade for Focus Mode */
-        .fade-out {
-            opacity: 0;
-            pointer-events: none;
+        /* Dimming states during typing */
+        .typing-dimmed {
+            opacity: 0.2;
             transition: opacity 0.3s ease;
         }
-        .fade-in {
+        .typing-active-bright {
             opacity: 1;
             transition: opacity 0.3s ease;
         }
@@ -125,7 +124,7 @@
     <div class="w-full max-w-[1200px] mx-auto px-8 flex flex-col h-screen justify-between">
         
         <!-- Header -->
-        <header id="header-el" class="w-full pt-10 pb-6 flex items-center justify-between z-50 fade-in">
+        <header id="header-el" class="w-full pt-10 pb-6 flex items-center justify-between z-50 typing-active-bright">
             <!-- Left side: Logo and Icons -->
             <div class="flex items-center gap-6">
                 <!-- Logo Block -->
@@ -159,7 +158,7 @@
         <main class="flex-grow flex flex-col justify-center relative w-full items-center">
             
             <!-- Config Bar -->
-            <div id="config-bar" class="w-full flex justify-center mb-8 gap-3 text-[0.8rem] fade-in">
+            <div id="config-bar" class="w-full flex justify-center mb-8 gap-3 text-[0.8rem] typing-active-bright">
                 <!-- Box 1 -->
                 <div class="bg-mt-dark rounded-lg flex items-center px-4 py-2 gap-4">
                     <span class="cursor-pointer hover:text-mt-textActive transition-colors flex items-center gap-2"><i class="fa-solid fa-at text-[0.7rem]"></i> punctuation</span>
@@ -185,7 +184,7 @@
             </div>
 
             <!-- Language Indicator (Above text) -->
-            <div id="lang-bar" class="w-full max-w-[1000px] flex justify-center mb-4 relative z-40">
+            <div id="lang-bar" class="w-full max-w-[1000px] flex justify-center mb-4 relative z-40 typing-active-bright">
                 <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors group" onclick="toggleLangMenu(event)">
                     <i class="fa-solid fa-globe text-sm"></i>
                     <span id="current-lang-display" class="text-sm font-medium">indonesian</span>
@@ -203,16 +202,24 @@
                 </div>
             </div>
 
-            <!-- Typing Area -->
-            <div id="typing-area" class="no-select w-full max-w-[1000px]">
-                <div id="caret" class="blink"></div>
-                <div id="words-container">
-                    <!-- Words injected here -->
+            <!-- Typing Area Wrapper with Top-Left Live Timer -->
+            <div class="relative w-full max-w-[1000px]">
+                <!-- Live Timer Indicator (Positioned precisely at the top-left corner above typing area) -->
+                <div id="live-timer-container" class="absolute -top-10 left-0 text-3xl font-bold text-mt-primary opacity-0 transition-opacity duration-300">
+                    <span id="live-timer">30</span>
+                </div>
+
+                <!-- Typing Area -->
+                <div id="typing-area" class="no-select w-full">
+                    <div id="caret" class="blink"></div>
+                    <div id="words-container">
+                        <!-- Words injected here -->
+                    </div>
                 </div>
             </div>
             
             <!-- Restart & Shortcuts -->
-            <div id="restart-bar" class="flex flex-col items-center mt-10 w-full fade-in">
+            <div id="restart-bar" class="flex flex-col items-center mt-10 w-full typing-active-bright">
                 <!-- Restart Icon -->
                 <i class="fa-solid fa-arrow-rotate-right text-xl hover:text-mt-textActive cursor-pointer transition-colors mb-4" onclick="resetTest()"></i>
                 
@@ -220,6 +227,9 @@
                 <div class="flex flex-col items-center gap-1 text-[0.75rem]">
                     <div>
                         <span class="bg-mt-dark text-mt-textActive px-2 py-0.5 rounded">tab</span> <span class="mx-1">></span> <span class="bg-mt-dark text-mt-textActive px-2 py-0.5 rounded">enter</span> <span class="mx-1">-</span> restart test
+                    </div>
+                    <div>
+                        <span class="bg-mt-dark text-mt-textActive px-2 py-0.5 rounded">escape</span> <span class="mx-1">or</span> <span class="bg-mt-dark text-mt-textActive px-2 py-0.5 rounded">ctrl + shift + p</span> <span class="mx-1">-</span> command line
                     </div>
                 </div>
             </div>
@@ -273,7 +283,7 @@
         </main>
 
         <!-- Footer -->
-        <footer id="footer-el" class="w-full py-6 flex items-center justify-between text-[0.75rem] z-30 fade-in">
+        <footer id="footer-el" class="w-full py-6 flex items-center justify-between text-[0.75rem] z-30 typing-active-bright">
             <!-- Left: Links -->
             <div class="flex gap-5 items-center">
                 <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-solid fa-envelope"></i> contact</div>
@@ -282,6 +292,8 @@
                 <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-brands fa-discord"></i> discord</div>
                 <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-brands fa-twitter"></i> twitter</div>
                 <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-solid fa-file-contract"></i> terms</div>
+                <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-solid fa-shield"></i> security</div>
+                <div class="flex items-center gap-1.5 cursor-pointer hover:text-mt-textActive transition-colors"><i class="fa-solid fa-lock"></i> privacy</div>
             </div>
 
             <!-- Right: Theme & Version -->
@@ -353,12 +365,15 @@
         const el = {
             header: document.getElementById('header-el'),
             configBar: document.getElementById('config-bar'),
+            langBar: document.getElementById('lang-bar'),
             restartBar: document.getElementById('restart-bar'),
             footer: document.getElementById('footer-el'),
             wordsContainer: document.getElementById('words-container'),
             caret: document.getElementById('caret'),
             langDisplay: document.getElementById('current-lang-display'),
             resultsScreen: document.getElementById('results-screen'),
+            liveTimerContainer: document.getElementById('live-timer-container'),
+            liveTimer: document.getElementById('live-timer'),
             
             resWpm: document.getElementById('res-wpm'),
             resAcc: document.getElementById('res-acc'),
@@ -471,16 +486,19 @@
             el.caret.classList.remove('hidden-caret');
             el.resultsScreen.classList.add('hidden');
             el.resultsScreen.classList.remove('flex');
+            el.liveTimerContainer.style.opacity = '0';
 
-            // Restore Header & Footer visibility
-            el.header.classList.remove('fade-out');
-            el.header.classList.add('fade-in');
-            el.configBar.classList.remove('fade-out');
-            el.configBar.classList.add('fade-in');
-            el.restartBar.classList.remove('fade-out');
-            el.restartBar.classList.add('fade-in');
-            el.footer.classList.remove('fade-out');
-            el.footer.classList.add('fade-in');
+            // Restore elements brightness
+            el.header.classList.remove('typing-dimmed');
+            el.header.classList.add('typing-active-bright');
+            el.configBar.classList.remove('typing-dimmed');
+            el.configBar.classList.add('typing-active-bright');
+            el.langBar.classList.remove('typing-dimmed');
+            el.langBar.classList.add('typing-active-bright');
+            el.restartBar.classList.remove('typing-dimmed');
+            el.restartBar.classList.add('typing-active-bright');
+            el.footer.classList.remove('typing-dimmed');
+            el.footer.classList.add('typing-active-bright');
 
             // Generate Content based on mode
             if (state.mode === 'quote') {
@@ -489,7 +507,7 @@
                 const chosenQuote = qList[Math.floor(Math.random() * qList.length)];
                 state.wordsList = chosenQuote.split(' ');
             } else if (state.mode === 'zen') {
-                state.wordsList = []; // Empty for free typing
+                state.wordsList = []; 
             } else {
                 const baseLang = state.language.includes('10k') ? (state.language.includes('indonesian') ? 'indonesian 10k' : 'english 10k') :
                                  state.language.includes('1k') ? (state.language.includes('indonesian') ? 'indonesian 1k' : 'english 1k') :
@@ -505,6 +523,7 @@
             }
             
             state.timeLeft = state.timeValue;
+            el.liveTimer.textContent = state.timeLeft;
 
             // Build DOM
             state.wordsList.forEach((wordText) => {
@@ -562,7 +581,7 @@
             }
         }
 
-        // --- WPM Calculation (Boosted & Zero Penalty) ---
+        // --- WPM Calculation with Boost & Zero Penalty ---
         function calcWpm() {
             if (!state.startTime) return 0;
             const now = state.isFinished ? state.endTime : Date.now();
@@ -573,7 +592,7 @@
 
             const totalEffectiveChars = state.correctChars + state.errorChars;
             const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
-            const boostedWpm = rawWpm * 1.50; // Boosted 50% for high satisfaction & easy scores
+            const boostedWpm = rawWpm * 1.50; // 50% Boost for a satisfying feel
             
             return Math.max(0, Math.round(boostedWpm));
         }
@@ -583,20 +602,27 @@
             state.startTime = Date.now();
             el.caret.classList.remove('blink');
 
-            // Hide header, config bar, restart hints, and footer smoothly
-            el.header.classList.remove('fade-in');
-            el.header.classList.add('fade-out');
-            el.configBar.classList.remove('fade-in');
-            el.configBar.classList.add('fade-out');
-            el.restartBar.classList.remove('fade-in');
-            el.restartBar.classList.add('fade-out');
-            el.footer.classList.remove('fade-in');
-            el.footer.classList.add('fade-out');
+            // Dim header, config bar, language bar, restart bar, and footer gently
+            el.header.classList.remove('typing-active-bright');
+            el.header.classList.add('typing-dimmed');
+            el.configBar.classList.remove('typing-active-bright');
+            el.configBar.classList.add('typing-dimmed');
+            el.langBar.classList.remove('typing-active-bright');
+            el.langBar.classList.add('typing-dimmed');
+            el.restartBar.classList.remove('typing-active-bright');
+            el.restartBar.classList.add('typing-dimmed');
+            el.footer.classList.remove('typing-active-bright');
+            el.footer.classList.add('typing-dimmed');
+
+            if (state.mode === 'time') {
+                el.liveTimerContainer.style.opacity = '1';
+            }
 
             state.timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
                 if (state.mode === 'time') {
                     state.timeLeft = state.timeValue - elapsed;
+                    el.liveTimer.textContent = state.timeLeft;
                     if (state.timeLeft <= 0) {
                         state.timeLeft = 0;
                         endTest();
@@ -629,12 +655,13 @@
             // Switch Screen
             el.resultsScreen.classList.remove('hidden');
             el.resultsScreen.classList.add('flex');
+            el.liveTimerContainer.style.opacity = '0';
 
-            // Bring back header and footer on result screen
-            el.header.classList.remove('fade-out');
-            el.header.classList.add('fade-in');
-            el.footer.classList.remove('fade-out');
-            el.footer.classList.add('fade-in');
+            // Bring back full brightness on result screen
+            el.header.classList.remove('typing-dimmed');
+            el.header.classList.add('typing-active-bright');
+            el.footer.classList.remove('typing-dimmed');
+            el.footer.classList.add('typing-active-bright');
         }
 
         // --- Input Handling ---
