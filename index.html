@@ -581,7 +581,7 @@
             }
         }
 
-        // --- High Boost & Forgiving WPM Calculation ---
+        // --- Optimized Feel-Good WPM Calculation (70% Boost, Zero Penalty) ---
         function calcWpm() {
             if (!state.startTime) return 0;
             const now = state.isFinished ? state.endTime : Date.now();
@@ -590,12 +590,11 @@
             if (state.isFinished && state.mode === 'time') elapsedMins = state.timeValue / 60;
             if (elapsedMins <= 0.01) return 0;
 
-            // Combine correct and error characters for zero penalty, with a generous 1.35x boost multiplier
-            const totalActivityChars = state.correctChars + state.errorChars;
-            const rawWpm = (totalActivityChars / 5) / elapsedMins;
-            const boostedWpm = rawWpm * 1.35; 
+            const totalEffectiveChars = state.correctChars + state.errorChars;
+            const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
+            const balancedWpm = rawWpm * 1.70; // 70% Boost
             
-            return Math.max(0, Math.round(boostedWpm));
+            return Math.max(0, Math.round(balancedWpm));
         }
 
         function startTimer() {
