@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monkeytype</title>
+    <title>Monkeytype Clone</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Roboto Mono (Monkeytype default feel) -->
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind Config for Classic Carbon Theme -->
     <script>
-        // Exact Monkeytype Dark Theme Colors
         tailwind.config = {
             theme: {
                 extend: {
@@ -23,8 +28,8 @@
                         mt: {
                             bg: '#323437',
                             dark: '#2c2e31',
-                            textDefault: '#646669',
-                            textCorrect: '#d1d0c5',
+                            textMuted: '#646669',
+                            textActive: '#d1d0c5',
                             textError: '#ca4754',
                             errorExtra: '#7e2a33',
                             primary: '#e2b714',
@@ -34,19 +39,18 @@
             }
         }
     </script>
+    
     <style>
         body {
             background-color: #323437;
             color: #646669;
-            overflow: hidden; /* Hide scrollbar for clean look */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        /* Animated smooth caret */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        
+        /* Smooth Caret */
         #caret {
             width: 2px;
             height: 1.5em;
@@ -55,620 +59,813 @@
             transition: transform 0.1s ease;
             z-index: 10;
             border-radius: 2px;
+            top: 0;
+            left: 0;
         }
-
-        .blink {
-            animation: blink 1s infinite;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
+        .blink { animation: blink 1s infinite; }
+        .hidden-caret { opacity: 0 !important; }
 
-        /* Typing Area Container */
+        /* Typing Area */
         #typing-area {
             position: relative;
-            max-height: 120px; /* Limit to ~3 lines */
+            height: 110px; /* Roughly 3 lines */
             overflow: hidden;
-            font-size: 1.75rem; /* Large font size like original */
+            font-size: 1.5rem; 
             line-height: 1.5;
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
         }
-
-        #words {
+        #words-container {
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
-            transition: transform 0.25s ease; /* Smooth line scrolling */
+            transition: transform 0.25s ease;
             width: 100%;
         }
 
         .word {
             display: flex;
             margin: 0 0.5em 0.3em 0;
-            border-bottom: 2px solid transparent; /* For error underline */
+            border-bottom: 2px solid transparent; 
         }
-        
         .word.error-underline {
             border-bottom-color: #ca4754;
         }
-
-        .letter {
-            color: #646669; /* Default */
-        }
-
-        .letter.correct {
-            color: #d1d0c5;
-        }
-
-        .letter.error {
-            color: #ca4754;
-        }
         
-        .letter.extra {
-            color: #7e2a33; /* Darker red for extra letters */
-        }
+        /* Letters */
+        .letter { color: #646669; }
+        .letter.correct { color: #d1d0c5; }
+        .letter.error { color: #ca4754; }
+        .letter.extra { color: #7e2a33; }
 
         .no-select {
             user-select: none;
             -webkit-user-select: none;
         }
 
-        /* Custom Scrollbar for dropdown */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Config Bar Transitions */
+        .config-btn {
+            cursor: pointer;
+            transition: color 0.2s;
         }
-        ::-webkit-scrollbar-track {
-            background: #2c2e31; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #646669; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #e2b714; 
-        }
+        .config-btn:hover { color: #d1d0c5; }
+        .config-btn.active { color: #e2b714; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2c2e31; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #646669; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col font-mono selection:bg-mt-primary/30">
+<body class="font-mono text-mt-textMuted selection:bg-mt-primary/30">
 
-    <!-- Navbar -->
-    <header class="w-full max-w-[1000px] mx-auto px-4 py-8 flex items-center justify-between">
-        <!-- Logo -->
-        <div class="flex items-center gap-3 text-mt-textCorrect cursor-pointer hover:text-mt-textCorrect/80 transition-colors" onclick="resetTest()">
-            <svg class="w-8 h-8 text-mt-primary" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-            </svg>
-            <div class="text-3xl font-bold tracking-tighter relative">
-                monkeytype
-                <span class="absolute -top-1 -right-6 text-[10px] bg-mt-primary text-mt-bg px-1 rounded font-bold">BOOST</span>
-            </div>
-        </div>
+    <!-- Wrapper -->
+    <div class="w-full max-w-[1000px] mx-auto px-4 flex flex-col h-screen">
         
-        <!-- Right Icons -->
-        <div class="flex gap-4 text-mt-textDefault">
-            <svg class="w-5 h-5 hover:text-mt-textCorrect cursor-pointer transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            <svg class="w-5 h-5 hover:text-mt-textCorrect cursor-pointer transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        </div>
-    </header>
-
-    <!-- Test Settings Bar -->
-    <div id="test-config" class="w-full max-w-[1000px] mx-auto px-4 mb-12 flex justify-center">
-        <div class="bg-mt-dark rounded-lg flex items-center px-4 py-2 text-sm text-mt-textDefault font-medium gap-6 shadow-sm">
-            
-            <!-- Language Selector -->
-            <div class="flex items-center gap-2 group relative">
-                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textCorrect transition-colors" onclick="toggleLanguageMenu()">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
-                    <span id="current-lang">english</span>
+        <!-- Header -->
+        <header class="w-full py-8 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-4 cursor-pointer group" onclick="resetTest()">
+                <div class="relative">
+                    <i class="fa-solid fa-keyboard text-3xl text-mt-primary group-hover:text-mt-textActive transition-colors"></i>
                 </div>
-                <!-- Dropdown -->
-                <div id="lang-dropdown" class="hidden absolute top-full left-0 mt-2 bg-mt-bg border border-mt-dark rounded shadow-lg z-20 py-2 w-32">
-                    <div class="px-4 py-1 hover:bg-mt-dark hover:text-mt-textCorrect cursor-pointer" onclick="setLanguage('en')">english</div>
-                    <div class="px-4 py-1 hover:bg-mt-dark hover:text-mt-textCorrect cursor-pointer" onclick="setLanguage('id')">indonesian</div>
-                </div>
-            </div>
-
-            <div class="w-1 h-4 bg-mt-textDefault/20 rounded"></div> <!-- Divider -->
-
-            <!-- Test Mode (Dummy UI for clone accuracy) -->
-            <div class="flex items-center gap-4">
-                <span class="cursor-pointer text-mt-primary flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> time</span>
-                <span class="cursor-pointer hover:text-mt-textCorrect transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg> words</span>
-                <span class="cursor-pointer hover:text-mt-textCorrect transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg> quote</span>
-            </div>
-
-            <div class="w-1 h-4 bg-mt-textDefault/20 rounded"></div> <!-- Divider -->
-
-            <!-- Time Selection -->
-            <div class="flex items-center gap-4">
-                <span class="time-opt cursor-pointer hover:text-mt-textCorrect transition-colors" data-time="15">15</span>
-                <span class="time-opt cursor-pointer text-mt-primary transition-colors" data-time="30">30</span>
-                <span class="time-opt cursor-pointer hover:text-mt-textCorrect transition-colors" data-time="60">60</span>
-                <span class="time-opt cursor-pointer hover:text-mt-textCorrect transition-colors" data-time="120">120</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Typing Area -->
-    <main class="w-full max-w-[1000px] mx-auto px-4 flex-grow flex flex-col justify-center relative -top-12">
-        
-        <!-- Live Stats (Time & WPM) -->
-        <div id="live-stats" class="flex items-center text-mt-primary text-3xl font-bold mb-4 opacity-100 transition-opacity duration-200 h-10">
-            <div id="time-display" class="w-16">30</div>
-            <div id="wpm-live-container" class="hidden">wpm: <span id="wpm-live">0</span></div>
-        </div>
-
-        <!-- Words Container -->
-        <div id="typing-area" class="no-select">
-            <div id="caret" class="blink"></div>
-            <div id="words">
-                <!-- Words injected via JS -->
-            </div>
-        </div>
-
-        <!-- Shortcut Hint -->
-        <div class="flex justify-center mt-12 opacity-50">
-            <div class="flex items-center gap-2 text-sm text-mt-textDefault">
-                <span class="bg-mt-textDefault/20 px-2 py-0.5 rounded text-mt-textCorrect">tab</span> + <span class="bg-mt-textDefault/20 px-2 py-0.5 rounded text-mt-textCorrect">enter</span> - restart test
-            </div>
-        </div>
-    </main>
-
-    <!-- Results Screen (Hidden by default) -->
-    <div id="results-screen" class="fixed inset-0 bg-mt-bg z-50 hidden flex-col w-full max-w-[1000px] mx-auto px-4 justify-center">
-        <!-- Top row stats -->
-        <div class="flex items-start gap-12 mb-10">
-            <!-- Left col -->
-            <div class="flex flex-col gap-6">
-                <div>
-                    <div class="text-mt-textDefault text-3xl">wpm</div>
-                    <div id="res-wpm" class="text-7xl font-bold text-mt-primary leading-none">0</div>
-                </div>
-                <div>
-                    <div class="text-mt-textDefault text-3xl">acc</div>
-                    <div id="res-acc" class="text-7xl font-bold text-mt-primary leading-none">0%</div>
+                <div class="text-3xl font-bold tracking-tighter text-mt-textActive group-hover:text-mt-textActive/80 transition-colors relative">
+                    monkeytype
                 </div>
             </div>
             
-            <!-- Graph placeholder (UI Clone visual) -->
-            <div class="flex-grow h-48 bg-mt-dark/30 rounded-lg border border-mt-dark flex items-center justify-center text-mt-textDefault/30">
-                [ Chart Area ]
+            <!-- Right Icons -->
+            <div class="flex items-center gap-6 text-lg">
+                <i class="fa-solid fa-keyboard hover:text-mt-textActive cursor-pointer transition-colors"></i>
+                <i class="fa-solid fa-crown hover:text-mt-textActive cursor-pointer transition-colors"></i>
+                <i class="fa-solid fa-info hover:text-mt-textActive cursor-pointer transition-colors"></i>
+                <i class="fa-solid fa-gear hover:text-mt-textActive cursor-pointer transition-colors"></i>
+                <!-- User Profile / Login Mockup -->
+                <div class="flex items-center gap-2 hover:text-mt-textActive cursor-pointer transition-colors ml-4">
+                    <i class="fa-regular fa-user"></i>
+                </div>
             </div>
-        </div>
-        
-        <!-- Bottom stats -->
-        <div class="flex gap-16 text-mt-textDefault text-lg mb-12">
-            <div>
-                <div class="text-sm">test type</div>
-                <div class="text-mt-primary" id="res-type-time">time 30s</div>
-                <div class="text-mt-textCorrect" id="res-type-lang">english</div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow flex flex-col justify-center relative">
+            
+            <!-- Config Bar -->
+            <div id="config-bar" class="w-full flex justify-center mb-10 transition-opacity duration-200">
+                <div class="bg-mt-dark rounded-xl flex items-center px-4 py-2 text-sm font-medium gap-6 shadow-sm">
+                    
+                    <!-- Modifiers (Punctuation, Numbers) -->
+                    <div class="flex items-center gap-4">
+                        <span class="config-btn flex items-center gap-2" id="btn-punc"><i class="fa-solid fa-at text-xs"></i> punctuation</span>
+                        <span class="config-btn flex items-center gap-2" id="btn-num"><i class="fa-solid fa-hashtag text-xs"></i> numbers</span>
+                    </div>
+
+                    <div class="w-1 h-5 bg-mt-bg rounded"></div> <!-- Divider -->
+
+                    <!-- Modes -->
+                    <div class="flex items-center gap-4" id="mode-selector">
+                        <span class="config-btn active flex items-center gap-2" data-mode="time"><i class="fa-regular fa-clock text-xs"></i> time</span>
+                        <span class="config-btn flex items-center gap-2" data-mode="words"><i class="fa-solid fa-font text-xs"></i> words</span>
+                        <span class="config-btn flex items-center gap-2" data-mode="quote"><i class="fa-solid fa-quote-left text-xs"></i> quote</span>
+                        <span class="config-btn flex items-center gap-2" data-mode="zen"><i class="fa-solid fa-mountain text-xs"></i> zen</span>
+                        <span class="config-btn flex items-center gap-2" data-mode="custom"><i class="fa-solid fa-wrench text-xs"></i> custom</span>
+                    </div>
+
+                    <div class="w-1 h-5 bg-mt-bg rounded"></div> <!-- Divider -->
+
+                    <!-- Sub Modes (Time/Words/Quote options) -->
+                    <div class="flex items-center gap-4" id="sub-mode-selector">
+                        <!-- Injected via JS based on mode -->
+                    </div>
+                </div>
             </div>
-            <div>
-                <div class="text-sm">characters</div>
-                <div class="text-3xl text-mt-textCorrect"><span id="res-correct">0</span><span class="text-mt-textDefault text-lg mx-1">/</span><span id="res-error" class="text-mt-textError">0</span><span class="text-mt-textDefault text-lg mx-1">/</span><span id="res-extra" class="text-mt-errorExtra">0</span></div>
+
+            <!-- Live Stats (Timer / Word count) -->
+            <div id="live-stats" class="text-mt-primary text-2xl font-bold mb-2 h-8 flex items-center gap-4 transition-opacity duration-200">
+                <div id="stat-primary">30</div>
+                <div id="live-wpm" class="text-mt-textMuted text-lg hidden">0 wpm</div>
             </div>
-            <div>
-                <div class="text-sm">time</div>
-                <div class="text-3xl text-mt-textCorrect" id="res-time">30s</div>
+
+            <!-- Typing Area -->
+            <div id="typing-area" class="no-select">
+                <div id="caret" class="blink"></div>
+                <div id="words-container">
+                    <!-- Words injected here -->
+                </div>
+            </div>
+            
+            <!-- Restart Hint -->
+            <div id="restart-hint" class="flex justify-center mt-12 opacity-0 transition-opacity duration-200">
+                <div class="flex items-center gap-4 text-sm">
+                    <div>
+                        <span class="bg-mt-dark px-2 py-0.5 rounded text-mt-textActive"><i class="fa-solid fa-arrow-right-arrow-left mr-1"></i> tab</span> + <span class="bg-mt-dark px-2 py-0.5 rounded text-mt-textActive">enter</span> - restart
+                    </div>
+                    <div>
+                        <span class="bg-mt-dark px-2 py-0.5 rounded text-mt-textActive">shift</span> + <span class="bg-mt-dark px-2 py-0.5 rounded text-mt-textActive">enter</span> - end test
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Results Screen (Hidden) -->
+        <div id="results-screen" class="absolute inset-0 z-20 flex-col justify-center hidden w-full bg-mt-bg">
+            <div class="flex items-start gap-12 mb-8">
+                <!-- Stats Left -->
+                <div class="flex flex-col gap-6">
+                    <div>
+                        <div class="text-3xl">wpm</div>
+                        <div id="res-wpm" class="text-[5rem] font-bold text-mt-primary leading-none tracking-tighter">0</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl">acc</div>
+                        <div id="res-acc" class="text-[5rem] font-bold text-mt-primary leading-none tracking-tighter">0%</div>
+                    </div>
+                </div>
+                <!-- Chart Mockup -->
+                <div class="flex-grow h-52 bg-mt-dark rounded-xl border border-mt-bg flex flex-col items-center justify-center text-mt-textMuted/40">
+                    <i class="fa-solid fa-chart-line text-4xl mb-2"></i>
+                    <span>Chart Data Placeholder</span>
+                </div>
+            </div>
+            
+            <!-- Stats Bottom -->
+            <div class="flex gap-16 text-lg mb-10">
+                <div>
+                    <div class="text-sm">test type</div>
+                    <div class="text-mt-primary" id="res-type">time 30</div>
+                    <div class="text-mt-textActive" id="res-lang">english</div>
+                </div>
+                <div>
+                    <div class="text-sm">characters</div>
+                    <div class="text-2xl text-mt-textActive font-bold">
+                        <span id="res-char-correct">0</span><span class="text-mt-textMuted text-lg mx-1 font-normal">/</span><span id="res-char-error" class="text-mt-textError">0</span><span class="text-mt-textMuted text-lg mx-1 font-normal">/</span><span id="res-char-extra" class="text-mt-errorExtra">0</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-sm">time</div>
+                    <div class="text-2xl text-mt-textActive font-bold" id="res-time">30s</div>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="resetTest()" class="text-mt-textMuted hover:text-mt-textActive transition-colors outline-none group bg-mt-dark p-3 rounded hover:bg-mt-bg border border-transparent hover:border-mt-dark">
+                    <i class="fa-solid fa-chevron-right text-xl group-hover:translate-x-1 transition-transform"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="flex gap-4">
-            <button onclick="resetTest()" class="text-mt-textDefault hover:text-mt-textCorrect transition-colors outline-none group p-2 rounded hover:bg-mt-dark">
-                <svg class="w-6 h-6 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            </button>
-        </div>
+        <!-- Footer -->
+        <footer class="w-full py-6 flex items-center justify-between text-sm z-30 relative">
+            <!-- Left: Settings & Language -->
+            <div class="flex gap-6 items-center">
+                <!-- Theme Palette -->
+                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors">
+                    <i class="fa-solid fa-palette text-xs"></i>
+                    <span>carbon</span>
+                </div>
+
+                <!-- Language Dropdown -->
+                <div class="relative group">
+                    <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors" onclick="toggleLangMenu()">
+                        <i class="fa-solid fa-globe text-xs"></i>
+                        <span id="current-lang-display">english</span>
+                    </div>
+                    
+                    <!-- Dropdown List -->
+                    <div id="lang-dropdown" class="absolute bottom-full left-0 mb-2 bg-mt-dark border border-mt-bg rounded shadow-lg py-2 w-40 hidden flex-col gap-1 z-40 max-h-48 overflow-y-auto">
+                        <div class="px-4 py-1 hover:bg-mt-bg hover:text-mt-textActive cursor-pointer" onclick="setLanguage('english')">english</div>
+                        <div class="px-4 py-1 hover:bg-mt-bg hover:text-mt-textActive cursor-pointer" onclick="setLanguage('english 1k')">english 1k</div>
+                        <div class="px-4 py-1 hover:bg-mt-bg hover:text-mt-textActive cursor-pointer" onclick="setLanguage('english 10k')">english 10k</div>
+                        <div class="px-4 py-1 hover:bg-mt-bg hover:text-mt-textActive cursor-pointer" onclick="setLanguage('indonesian')">indonesian</div>
+                        <div class="px-4 py-1 hover:bg-mt-bg hover:text-mt-textActive cursor-pointer" onclick="setLanguage('indonesian 1k')">indonesian 1k</div>
+                        <div class="px-4 py-1 hover:bg-mt-bg hover:text-mt-textActive cursor-pointer" onclick="setLanguage('indonesian 10k')">indonesian 10k</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Links/Shortcuts -->
+            <div class="flex gap-6 items-center">
+                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors">
+                    <i class="fa-solid fa-envelope text-xs"></i>
+                    <span>contact</span>
+                </div>
+                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors">
+                    <i class="fa-solid fa-heart text-xs text-mt-textError"></i>
+                    <span>support</span>
+                </div>
+                <div class="flex items-center gap-2 cursor-pointer hover:text-mt-textActive transition-colors">
+                    <i class="fa-solid fa-code text-xs"></i>
+                    <span>github</span>
+                </div>
+            </div>
+        </footer>
+
     </div>
 
     <script>
-        // --- Dictionaries (Strictly Separated) ---
-        const wordsEn = [
-            "the", "be", "to", "of", "and", "a", "in", "that", "have", "I", 
-            "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", 
-            "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", 
-            "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", 
-            "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", 
-            "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", 
-            "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", 
-            "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", 
-            "back", "after", "use", "two", "how", "our", "work", "first", "well", "way"
-        ];
+        // --- Dictionaries & Quotes ---
+        const dicts = {
+            'english': ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "people", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"],
+            'english 1k': ["accept", "according", "account", "across", "action", "activity", "actually", "address", "administration", "admit", "affect", "against", "agency", "agreement", "allow", "almost", "already", "although", "always", "american", "among", "amount", "analysis", "another", "answer", "anyone", "anything", "appear", "apply", "approach", "area", "argue", "around", "arrive", "article", "assume", "attack", "attention", "author", "authority", "available", "avoid", "away", "baby", "back", "bad", "bag", "ball", "bank", "base"],
+            'english 10k': ["aberration", "abstruse", "cacophony", "dichotomy", "ephemeral", "facetious", "garrulous", "iconoclast", "juxtaposition", "lethargic", "mellifluous", "nefarious", "obfuscate", "paradigm", "quixotic", "recalcitrant", "sycophant", "trepidation", "ubiquitous", "vacillate", "xenophobia", "zealous", "acquiesce", "benevolent", "capricious", "deleterious", "enervate", "fastidious", "gregarious", "hackneyed"],
+            'indonesian': ["yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", "akan", "pada", "juga", "saya", "ke", "karena", "tersebut", "bisa", "ada", "mereka", "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", "sendiri", "belum", "bukan", "antara", "lagi", "sama", "sampai", "waktu", "kamu", "bahkan", "lalu", "bahwa", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "tempat", "besar"],
+            'indonesian 1k': ["kepada", "mengatakan", "melakukan", "negara", "pemerintah", "masyarakat", "berbagai", "bagi", "bagian", "merupakan", "tingkat", "langsung", "berada", "semua", "pernah", "kali", "melihat", "awal", "dua", "anak", "laporan", "kondisi", "jalan", "sebagai", "mungkin", "memberikan", "biasa", "masalah", "terjadi", "sebelum", "perusahaan", "program", "berjalan", "hasil", "membawa", "masuk", "hidup", "keluarga", "kerja", "kecil", "utama", "tahu", "selalu", "mana", "tiga", "berharap", "akhir", "kemudian", "jauh"],
+            'indonesian 10k': ["implementasi", "karakteristik", "signifikan", "komprehensif", "infrastruktur", "fundamental", "transformasi", "substansial", "fluktuasi", "kolaborasi", "konsekuensi", "representasi", "integritas", "rekomendasi", "spekulasi", "transparansi", "akumulasi", "birokrasi", "eksplorasi", "manipulasi", "metodologi", "partisipasi", "rekonstruksi", "sertifikasi", "spesifikasi", "verifikasi", "klasifikasi", "konfigurasi", "manifestasi", "rehabilitasi"]
+        };
 
-        const wordsId = [
-            "yang", "di", "dan", "itu", "dengan", "untuk", "dari", "ini", "dalam", "tidak", 
-            "akan", "pada", "juga", "saya", "ke", "karena", "tersebut", "bisa", "ada", "mereka", 
-            "lebih", "sudah", "menjadi", "atau", "saat", "oleh", "hal", "kita", "seperti", "namun", 
-            "orang", "dapat", "setelah", "hanya", "sebuah", "tahun", "telah", "hari", "hingga", "agar", 
-            "banyak", "lain", "baru", "sangat", "membuat", "sementara", "harus", "baik", "kembali", "satu", 
-            "sendiri", "belum", "bukan", "antara", "lagi", "sama", "sampai", "waktu", "kamu", "bahkan", 
-            "lalu", "bahwa", "diri", "masih", "apa", "sedang", "beberapa", "ingin", "tempat", "besar", 
-            "bagi", "lakukan", "pernah", "atas", "terus", "selalu", "mana", "setiap", "semua", "cara",
-            "berada", "pun", "dua", "melihat", "awal", "bagian", "kali", "sebagai", "mungkin", "anak"
-        ];
+        const quotes = {
+            'english': [
+                "The quick brown fox jumps over the lazy dog.",
+                "To be or not to be, that is the question.",
+                "I think, therefore I am.",
+                "Life is what happens when you're busy making other plans.",
+                "The future belongs to those who believe in the beauty of their dreams.",
+                "It does not matter how slowly you go as long as you do not stop.",
+                "In the end, it's not the years in your life that count. It's the life in your years.",
+                "Success is not final, failure is not fatal: It is the courage to continue that counts."
+            ],
+            'indonesian': [
+                "Beri aku seribu orang tua, niscaya akan kucabut semeru dari akarnya.",
+                "Pendidikan adalah senjata paling mematikan di dunia.",
+                "Keberhasilan bukanlah milik orang yang pintar, melainkan orang yang senantiasa berusaha.",
+                "Kegagalan adalah keberhasilan yang tertunda.",
+                "Bermimpilah setinggi langit. Jika engkau jatuh, engkau akan jatuh di antara bintang-bintang.",
+                "Tidak ada hasil yang mengkhianati usaha.",
+                "Orang bijak belajar ketika mereka bisa. Orang bodoh belajar ketika mereka terpaksa.",
+                "Hidup itu seperti mengendarai sepeda. Untuk menjaga keseimbangan, kamu harus terus bergerak."
+            ]
+        };
 
-        // --- State Variables ---
-        let currentLanguage = 'en'; // default english
-        let currentDictionary = wordsEn;
-        
-        let testDuration = 30; // default 30s
-        let timeLeft = testDuration;
-        let timeElapsed = 0;
-        
-        let words = []; // Generated text
-        let wordElements = []; // DOM elements cache
-        
-        let currentWordIndex = 0;
-        let currentCharIndex = 0;
-        
-        let startTime = null;
-        let timerInterval = null;
-        let isTyping = false;
-        let isFinished = false;
-
-        // Metric Counters (For Boosted Feel-Good Algo)
-        let correctChars = 0;
-        let errorChars = 0;
-        let extraChars = 0; 
+        // --- App State ---
+        let state = {
+            mode: 'time', // time, words, quote, zen, custom
+            timeValue: 30,
+            wordCountValue: 25,
+            quoteLength: 'all',
+            language: 'english',
+            
+            wordsList: [],
+            domWords: [],
+            
+            wordIndex: 0,
+            charIndex: 0,
+            
+            isTyping: false,
+            isFinished: false,
+            startTime: null,
+            endTime: null,
+            timerInterval: null,
+            timeLeft: 30,
+            
+            // Stats
+            correctChars: 0,
+            errorChars: 0,
+            extraChars: 0,
+        };
 
         // --- DOM Elements ---
-        const typingArea = document.getElementById('typing-area');
-        const wordsContainer = document.getElementById('words');
-        const caret = document.getElementById('caret');
-        const timeDisplay = document.getElementById('time-display');
-        const wpmLiveDisplay = document.getElementById('wpm-live');
-        const wpmLiveContainer = document.getElementById('wpm-live-container');
-        
-        const mainScreen = document.querySelector('main');
-        const configScreen = document.getElementById('test-config');
-        const resultsScreen = document.getElementById('results-screen');
+        const el = {
+            wordsContainer: document.getElementById('words-container'),
+            caret: document.getElementById('caret'),
+            statPrimary: document.getElementById('stat-primary'),
+            liveWpm: document.getElementById('live-wpm'),
+            configBar: document.getElementById('config-bar'),
+            restartHint: document.getElementById('restart-hint'),
+            resultsScreen: document.getElementById('results-screen'),
+            mainContent: document.querySelector('main'),
+            subModeSelector: document.getElementById('sub-mode-selector'),
+            langDisplay: document.getElementById('current-lang-display'),
+            langDropdown: document.getElementById('lang-dropdown'),
+            
+            // Res
+            resWpm: document.getElementById('res-wpm'),
+            resAcc: document.getElementById('res-acc'),
+            resType: document.getElementById('res-type'),
+            resLang: document.getElementById('res-lang'),
+            resTime: document.getElementById('res-time'),
+            resCharCorrect: document.getElementById('res-char-correct'),
+            resCharError: document.getElementById('res-char-error'),
+            resCharExtra: document.getElementById('res-char-extra'),
+        };
 
         // --- Initialization ---
         function initTest() {
-            wordsContainer.innerHTML = '';
-            wordsContainer.style.transform = 'translateY(0px)';
-            words = [];
-            wordElements = [];
+            el.wordsContainer.innerHTML = '';
+            el.wordsContainer.style.transform = 'translateY(0px)';
+            state.wordsList = [];
+            state.domWords = [];
+            state.wordIndex = 0;
+            state.charIndex = 0;
+            
+            state.correctChars = 0;
+            state.errorChars = 0;
+            state.extraChars = 0;
 
-            // Generate ~200 random words from selected dictionary
-            for (let i = 0; i < 200; i++) {
-                const randomWord = currentDictionary[Math.floor(Math.random() * currentDictionary.length)];
-                words.push(randomWord);
+            state.isTyping = false;
+            state.isFinished = false;
+            state.startTime = null;
+            state.endTime = null;
+            clearInterval(state.timerInterval);
+
+            // Hide/Show UI Elements
+            el.configBar.classList.remove('opacity-0', 'pointer-events-none');
+            el.restartHint.classList.add('opacity-0');
+            el.caret.classList.add('blink');
+            el.caret.classList.remove('hidden-caret');
+            el.liveWpm.classList.add('hidden');
+            el.resultsScreen.classList.add('hidden');
+            el.resultsScreen.classList.remove('flex');
+            el.mainContent.classList.remove('hidden');
+
+            // --- Generate Content based on Mode ---
+            
+            if (state.mode === 'zen') {
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'word';
+                el.wordsContainer.appendChild(wordDiv);
+                state.domWords.push(wordDiv);
+                el.statPrimary.textContent = "zen";
+                setTimeout(updateCaret, 10);
+                document.activeElement.blur();
+                return; // Early return for zen mode (no predefined words)
+            }
+            
+            if (state.mode === 'quote') {
+                const baseLang = state.language.includes('indonesian') ? 'indonesian' : 'english';
+                const quoteArr = quotes[baseLang];
+                let filteredQuotes = quoteArr;
+                
+                if (state.quoteLength === 'short') filteredQuotes = quoteArr.filter(q => q.length < 50);
+                if (state.quoteLength === 'med') filteredQuotes = quoteArr.filter(q => q.length >= 50 && q.length < 100);
+                if (state.quoteLength === 'long') filteredQuotes = quoteArr.filter(q => q.length >= 100);
+                
+                if (filteredQuotes.length === 0) filteredQuotes = quoteArr; // Fallback
+                
+                const selectedQuote = filteredQuotes[Math.floor(Math.random() * filteredQuotes.length)];
+                state.wordsList = selectedQuote.split(' ');
+                el.statPrimary.textContent = `${state.wordIndex}/${state.wordsList.length}`;
+            } 
+            else if (state.mode === 'words') {
+                const dict = dicts[state.language] || dicts['english'];
+                for (let i = 0; i < state.wordCountValue; i++) {
+                    state.wordsList.push(dict[Math.floor(Math.random() * dict.length)]);
+                }
+                el.statPrimary.textContent = `${state.wordIndex}/${state.wordsList.length}`;
+            } 
+            else if (state.mode === 'time') {
+                const dict = dicts[state.language] || dicts['english'];
+                for (let i = 0; i < 200; i++) { // Buffer of 200 words initially
+                    state.wordsList.push(dict[Math.floor(Math.random() * dict.length)]);
+                }
+                state.timeLeft = state.timeValue;
+                el.statPrimary.textContent = state.timeLeft;
+            }
+            else {
+                // custom / fallback
+                el.statPrimary.textContent = "-";
             }
 
-            // Render words to DOM
-            words.forEach((wordText, wIndex) => {
-                const wordEl = document.createElement('div');
-                wordEl.className = 'word';
-                wordEl.dataset.index = wIndex;
-
-                for (let i = 0; i < wordText.length; i++) {
-                    const letterEl = document.createElement('span');
-                    letterEl.className = 'letter';
-                    letterEl.textContent = wordText[i];
-                    wordEl.appendChild(letterEl);
+            // Build DOM
+            state.wordsList.forEach((wordText) => {
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'word';
+                for (let c of wordText) {
+                    const span = document.createElement('span');
+                    span.className = 'letter';
+                    span.textContent = c;
+                    wordDiv.appendChild(span);
                 }
-                wordsContainer.appendChild(wordEl);
-                wordElements.push(wordEl);
+                el.wordsContainer.appendChild(wordDiv);
+                state.domWords.push(wordDiv);
             });
 
-            // Initial Caret Setup
-            setTimeout(() => { updateCaret(); }, 10);
+            setTimeout(updateCaret, 10);
+            document.activeElement.blur();
         }
 
-        // --- Core Mechanics: Caret & Scrolling ---
+        // --- Core Engine ---
         function updateCaret() {
-            if (currentWordIndex >= wordElements.length) return;
+            if (state.wordIndex >= state.domWords.length) {
+                el.caret.classList.add('hidden-caret');
+                return;
+            }
 
-            const wordEl = wordElements[currentWordIndex];
+            const wordEl = state.domWords[state.wordIndex];
             const letterEls = wordEl.querySelectorAll('.letter');
             
-            let targetX = 0;
-            let targetY = wordEl.offsetTop;
+            let x = 0;
+            let y = wordEl.offsetTop;
 
-            if (currentCharIndex < letterEls.length) {
-                // Before a letter
-                const letterEl = letterEls[currentCharIndex];
-                targetX = letterEl.offsetLeft;
+            // Universal calculation for both pre-filled and empty/zen mode words
+            if (state.charIndex < letterEls.length) {
+                x = letterEls[state.charIndex].offsetLeft;
+            } else if (letterEls.length > 0) {
+                const last = letterEls[letterEls.length - 1];
+                x = last.offsetLeft + last.offsetWidth;
             } else {
-                // At the end of the word
-                const lastLetter = letterEls[letterEls.length - 1];
-                targetX = lastLetter.offsetLeft + lastLetter.offsetWidth;
+                x = wordEl.offsetLeft;
             }
 
-            // Smoothly move caret via transform
-            caret.style.transform = `translate(${targetX}px, ${targetY}px)`;
+            el.caret.style.transform = `translate(${x}px, ${y}px)`;
 
-            // Smooth scrolling (keep current line near top)
-            // A line is roughly 40-50px height depending on font.
-            if (targetY > 60) {
-                // If we drop to line 2 or 3, scroll container up
-                const scrollAmount = targetY; 
-                wordsContainer.style.transform = `translateY(-${scrollAmount}px)`;
-                
-                // Adjust caret visually because container moved
-                caret.style.transform = `translate(${targetX}px, 0px)`;
+            // Scroll down logic
+            if (y > 70) {
+                el.wordsContainer.style.transform = `translateY(-${y - 36}px)`;
+                el.caret.style.transform = `translate(${x}px, 36px)`;
             } else {
-                wordsContainer.style.transform = `translateY(0px)`;
+                el.wordsContainer.style.transform = `translateY(0px)`;
             }
         }
 
-        // --- Core Mechanics: Boosted WPM Algorithm ---
-        function calculateWPM() {
-            if (!startTime) return 0;
+        // CUSTOM WPM CALCULATION (Boosted 20% + Zero Penalty for mistakes)
+        function calcWpm() {
+            if (!state.startTime) return 0;
+            const now = state.isFinished ? state.endTime : Date.now();
+            let elapsedMins = (now - state.startTime) / 1000 / 60;
             
-            const now = Date.now();
-            let elapsedMins = (now - startTime) / 1000 / 60;
-            if (isFinished) elapsedMins = testDuration / 60;
-            if (elapsedMins <= 0) return 0;
+            if (state.isFinished && state.mode === 'time') {
+                elapsedMins = state.timeValue / 60;
+            }
+            if (elapsedMins <= 0.01) return 0;
 
-            // THE FEEL-GOOD MAGIC:
-            // 1. Massive multiplier for correct characters (~4.5x boost).
-            // 2. Extremely minimal penalty for errors (only -0.1 per error char).
-            const effectiveScore = (correctChars * 4.5) - (errorChars * 0.1) - (extraChars * 0.1);
-            const wpm = (effectiveScore / 5) / elapsedMins;
-
-            return Math.max(0, Math.round(wpm)); // No negative WPM
+            // Treat Net WPM identical to Raw WPM (count correct and error chars) so mistakes have zero penalty
+            const totalEffectiveChars = state.correctChars + state.errorChars;
+            const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
+            const boostedWpm = rawWpm * 1.20; // 20% Boost feel-good factor
+            
+            return Math.max(0, Math.round(boostedWpm));
         }
 
-        // --- Timer Handling ---
         function startTimer() {
-            isTyping = true;
-            startTime = Date.now();
-            caret.classList.remove('blink');
-            wpmLiveContainer.classList.remove('hidden');
-            configScreen.classList.add('opacity-0', 'pointer-events-none'); // Fade out top config like real MT
+            state.isTyping = true;
+            state.startTime = Date.now();
+            el.caret.classList.remove('blink');
+            el.configBar.classList.add('opacity-0', 'pointer-events-none');
+            el.restartHint.classList.remove('opacity-0');
+            el.liveWpm.classList.remove('hidden');
 
-            timerInterval = setInterval(() => {
-                timeElapsed = Math.floor((Date.now() - startTime) / 1000);
-                timeLeft = testDuration - timeElapsed;
-                
-                if (timeLeft < 0) timeLeft = 0;
-                timeDisplay.textContent = timeLeft;
-                wpmLiveDisplay.textContent = calculateWPM();
-
-                if (timeLeft <= 0) {
-                    endTest();
+            state.timerInterval = setInterval(() => {
+                if (state.mode === 'time') {
+                    const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+                    state.timeLeft = state.timeValue - elapsed;
+                    if (state.timeLeft <= 0) {
+                        state.timeLeft = 0;
+                        endTest();
+                    }
+                    el.statPrimary.textContent = state.timeLeft;
+                } else if (state.mode === 'zen') {
+                    // Update display to elapsed time in zen
+                    const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+                    el.statPrimary.textContent = `zen ${elapsed}s`;
                 }
-            }, 250); // Fast interval for snappy updates
+                el.liveWpm.textContent = calcWpm() + ' wpm';
+            }, 200);
+        }
+
+        function endTest() {
+            if (state.isFinished) return;
+            state.isFinished = true;
+            state.endTime = Date.now();
+            clearInterval(state.timerInterval);
+            
+            const wpm = calcWpm();
+            const totalKeys = state.correctChars + state.errorChars + state.extraChars;
+            const acc = totalKeys > 0 ? Math.round((state.correctChars / totalKeys) * 100) : 0;
+            const timeElapsed = state.mode === 'time' ? state.timeValue : Math.round((state.endTime - state.startTime)/1000);
+
+            // Populate Results
+            el.resWpm.textContent = wpm;
+            el.resAcc.textContent = acc + '%';
+            el.resCharCorrect.textContent = state.correctChars;
+            el.resCharError.textContent = state.errorChars;
+            el.resCharExtra.textContent = state.extraChars;
+            el.resTime.textContent = timeElapsed + 's';
+            
+            let modeDisplay = state.mode;
+            if (state.mode === 'time') modeDisplay += ` ${state.timeValue}`;
+            if (state.mode === 'words') modeDisplay += ` ${state.wordCountValue}`;
+            if (state.mode === 'quote') modeDisplay += ` ${state.quoteLength}`;
+            
+            el.resType.textContent = modeDisplay;
+            el.resLang.textContent = state.language;
+
+            // Switch Screen
+            el.mainContent.classList.add('hidden');
+            el.resultsScreen.classList.remove('hidden');
+            el.resultsScreen.classList.add('flex');
         }
 
         // --- Input Handling ---
         window.addEventListener('keydown', (e) => {
-            if (isFinished) {
-                if (e.key === 'Tab') {
+            // Early Exit Triggers
+            if (e.key === 'Enter' && e.shiftKey) {
+                e.preventDefault();
+                if (state.isTyping) endTest();
+                return;
+            }
+
+            if (state.isFinished) {
+                if (e.key === 'Tab' || e.key === 'Enter') {
                     e.preventDefault();
                     resetTest();
                 }
                 return;
             }
 
-            // Quick Restart
             if (e.key === 'Tab') {
                 e.preventDefault();
                 resetTest();
                 return;
             }
 
-            // Ignore modifiers
-            if (e.ctrlKey || e.altKey || e.metaKey) return;
-            if (e.key.length > 1 && e.key !== 'Backspace' && e.key !== ' ') return;
-            if (e.key === 'Escape') return;
-
-            // Start typing on first valid keypress
-            if (!isTyping && (e.key.length === 1 || e.key === 'Backspace')) {
+            // Ignored keys
+            if (e.ctrlKey || e.altKey || e.metaKey || e.key === 'Escape' || e.key === 'Shift' || e.key === 'CapsLock' || e.key === 'Enter') return;
+            
+            // Start Timer
+            if (!state.isTyping && (e.key.length === 1 || e.key === 'Backspace')) {
                 startTimer();
             }
 
-            e.preventDefault(); // Prevent accidental browser scrolling with space
-
-            const wordEl = wordElements[currentWordIndex];
-            const letterEls = Array.from(wordEl.querySelectorAll('.letter'));
-            const expectedWord = words[currentWordIndex];
-
-            // 1. HANDLE BACKSPACE
-            if (e.key === 'Backspace') {
-                if (currentCharIndex > 0) {
-                    // Normal backspace within word
-                    currentCharIndex--;
-                    const letterToClear = letterEls[currentCharIndex];
-                    
-                    if (letterToClear.classList.contains('extra')) {
-                        letterToClear.remove();
-                        // Minimal penalty reduction (optional, feel-good keeps it forgiving)
-                        extraChars = Math.max(0, extraChars - 1);
-                    } else {
-                        // Revert state
-                        if (letterToClear.classList.contains('correct')) correctChars--;
-                        // We do NOT decrement errorChars aggressively to maintain a tiny penalty, 
-                        // but you could if you want pure 0 penalty. 
-                        
-                        letterToClear.classList.remove('correct', 'error');
-                    }
-                } else if (currentWordIndex > 0) {
-                    // Backspace to previous word (Monkeytype logic: only if previous word has errors)
-                    const prevWordEl = wordElements[currentWordIndex - 1];
-                    const prevLetters = prevWordEl.querySelectorAll('.letter');
-                    
-                    let hasError = false;
-                    prevLetters.forEach(l => {
-                        if (l.classList.contains('error') || l.classList.contains('extra')) hasError = true;
-                    });
-                    
-                    // If not completely correct or length mismatch, allow going back
-                    if (hasError || prevLetters.length !== words[currentWordIndex-1].length) {
-                        currentWordIndex--;
-                        currentCharIndex = prevWordEl.querySelectorAll('.letter').length;
-                        wordEl.classList.remove('error-underline'); // clear current err line just in case
-                    }
-                }
-                updateCaret();
-                return;
-            }
-
-            // 2. HANDLE SPACE
-            if (e.key === ' ') {
-                if (currentCharIndex === 0) return; // Don't allow space if haven't typed anything in current word
+            // --- ZEN MODE LOGIC ---
+            if (state.mode === 'zen') {
+                const wordEl = state.domWords[state.wordIndex];
                 
-                // Check if current word is incomplete or has errors to show red underline
-                let isWordPerfect = true;
-                if (currentCharIndex < expectedWord.length) isWordPerfect = false;
-                letterEls.forEach(l => {
-                    if (l.classList.contains('error') || l.classList.contains('extra')) isWordPerfect = false;
-                });
-
-                if (!isWordPerfect) {
-                    wordEl.classList.add('error-underline');
-                } else {
-                    wordEl.classList.remove('error-underline');
+                if (e.key === 'Backspace') {
+                    if (state.charIndex > 0) {
+                        state.charIndex--;
+                        const letters = wordEl.querySelectorAll('.letter');
+                        letters[state.charIndex].remove();
+                        state.correctChars = Math.max(0, state.correctChars - 1);
+                    } else if (state.wordIndex > 0) {
+                        wordEl.remove();
+                        state.domWords.pop();
+                        state.wordIndex--;
+                        const prevWord = state.domWords[state.wordIndex];
+                        state.charIndex = prevWord.querySelectorAll('.letter').length;
+                    }
+                    updateCaret();
+                    return;
                 }
 
-                currentWordIndex++;
-                currentCharIndex = 0;
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    if (state.charIndex === 0) return; // Prevent double space
+                    const newWord = document.createElement('div');
+                    newWord.className = 'word';
+                    el.wordsContainer.appendChild(newWord);
+                    state.domWords.push(newWord);
+                    state.wordIndex++;
+                    state.charIndex = 0;
+                    updateCaret();
+                    return;
+                }
+
+                if (e.key.length === 1) {
+                    const span = document.createElement('span');
+                    span.className = 'letter correct';
+                    span.textContent = e.key;
+                    wordEl.appendChild(span);
+                    state.charIndex++;
+                    state.correctChars++;
+                    updateCaret();
+                    return;
+                }
+                return; // End of Zen Logic
+            }
+
+            // --- NORMAL MODE LOGIC (Time, Words, Quote) ---
+            const wordEl = state.domWords[state.wordIndex];
+            const letterEls = Array.from(wordEl.querySelectorAll('.letter'));
+            const expectedWord = state.wordsList[state.wordIndex];
+
+            // 1. Backspace
+            if (e.key === 'Backspace') {
+                if (state.charIndex > 0) {
+                    state.charIndex--;
+                    const targetSpan = letterEls[state.charIndex];
+                    if (targetSpan.classList.contains('extra')) {
+                        targetSpan.remove();
+                        state.extraChars = Math.max(0, state.extraChars - 1);
+                    } else {
+                        if (targetSpan.classList.contains('correct')) state.correctChars--;
+                        if (targetSpan.classList.contains('error')) state.errorChars = Math.max(0, state.errorChars - 1);
+                        targetSpan.classList.remove('correct', 'error');
+                    }
+                } else if (state.wordIndex > 0) {
+                    // Monkeytype logic: go back word ONLY if it's incorrect or incomplete
+                    const prevWord = state.domWords[state.wordIndex - 1];
+                    const prevLetters = prevWord.querySelectorAll('.letter');
+                    let isWrong = prevLetters.length !== state.wordsList[state.wordIndex-1].length;
+                    prevLetters.forEach(l => {
+                        if (l.classList.contains('error') || l.classList.contains('extra')) isWrong = true;
+                    });
+
+                    if (isWrong) {
+                        state.wordIndex--;
+                        state.charIndex = prevLetters.length;
+                        wordEl.classList.remove('error-underline');
+                    }
+                }
                 updateCaret();
                 return;
             }
 
-            // 3. HANDLE TYPING (Letters)
+            // 2. Space (Next Word)
+            if (e.key === ' ') {
+                e.preventDefault();
+                if (state.charIndex === 0) return; // Ignore space if word is empty
+                
+                // Check if perfect
+                let perfect = state.charIndex === expectedWord.length;
+                letterEls.forEach(l => {
+                    if (l.classList.contains('error') || l.classList.contains('extra')) perfect = false;
+                });
+                
+                if (!perfect) wordEl.classList.add('error-underline');
+                else wordEl.classList.remove('error-underline');
+
+                state.wordIndex++;
+                state.charIndex = 0;
+                
+                // --- Infinite Time Mode Refill ---
+                if (state.mode === 'time' && state.wordIndex >= state.wordsList.length - 20) {
+                    const dict = dicts[state.language] || dicts['english'];
+                    for(let i=0; i<50; i++) {
+                        const newText = dict[Math.floor(Math.random() * dict.length)];
+                        state.wordsList.push(newText);
+                        const newDiv = document.createElement('div');
+                        newDiv.className = 'word';
+                        for (let c of newText) {
+                            const span = document.createElement('span');
+                            span.className = 'letter';
+                            span.textContent = c;
+                            newDiv.appendChild(span);
+                        }
+                        el.wordsContainer.appendChild(newDiv);
+                        state.domWords.push(newDiv);
+                    }
+                }
+                
+                // --- End Test Conditions ---
+                if ((state.mode === 'words' || state.mode === 'quote') && state.wordIndex >= state.domWords.length) {
+                    endTest();
+                    return;
+                }
+                
+                if(state.mode !== 'time') el.statPrimary.textContent = `${state.wordIndex}/${state.wordsList.length}`;
+
+                updateCaret();
+                return;
+            }
+
+            // 3. Normal Typing
             if (e.key.length === 1) {
-                // Overshooting (typing more letters than the word has)
-                if (currentCharIndex >= expectedWord.length) {
-                    // Limit max extra characters per word to 10 to prevent abuse/DOM overflow
-                    if (currentCharIndex < expectedWord.length + 10) {
+                if (state.charIndex >= expectedWord.length) {
+                    if (state.charIndex < expectedWord.length + 10) {
                         const extraSpan = document.createElement('span');
                         extraSpan.className = 'letter extra';
                         extraSpan.textContent = e.key;
                         wordEl.appendChild(extraSpan);
-                        extraChars++;
-                        currentCharIndex++;
+                        state.extraChars++;
+                        state.charIndex++;
                     }
                 } else {
-                    // Normal typing inside word bounds
-                    const expectedChar = expectedWord[currentCharIndex];
-                    const targetSpan = letterEls[currentCharIndex];
-
-                    if (e.key === expectedChar) {
+                    const targetSpan = letterEls[state.charIndex];
+                    if (e.key === expectedWord[state.charIndex]) {
                         targetSpan.classList.add('correct');
-                        correctChars++;
+                        state.correctChars++;
                     } else {
                         targetSpan.classList.add('error');
-                        errorChars++;
+                        state.errorChars++;
                     }
-                    currentCharIndex++;
+                    state.charIndex++;
                 }
                 updateCaret();
             }
         });
 
-        // --- End Test & Reset ---
-        function endTest() {
-            isFinished = true;
-            clearInterval(timerInterval);
-            
-            const finalWpm = calculateWPM();
-            const totalKeys = correctChars + errorChars + extraChars;
-            let accuracy = 100;
-            if (totalKeys > 0) {
-                accuracy = Math.round((correctChars / totalKeys) * 100);
-            }
-
-            // Populate Results UI
-            document.getElementById('res-wpm').textContent = finalWpm;
-            document.getElementById('res-acc').textContent = accuracy + '%';
-            document.getElementById('res-correct').textContent = correctChars;
-            document.getElementById('res-error').textContent = errorChars;
-            document.getElementById('res-extra').textContent = extraChars;
-            document.getElementById('res-type-time').textContent = `time ${testDuration}s`;
-            document.getElementById('res-type-lang').textContent = currentLanguage === 'en' ? 'english' : 'indonesian';
-            document.getElementById('res-time').textContent = `${testDuration}s`;
-
-            // Switch screens
-            mainScreen.classList.add('hidden');
-            configScreen.classList.add('hidden');
-            resultsScreen.classList.remove('hidden');
-            resultsScreen.classList.add('flex');
-        }
-
         function resetTest() {
-            clearInterval(timerInterval);
-            
-            isTyping = false;
-            isFinished = false;
-            startTime = null;
-            timeLeft = testDuration;
-            
-            currentWordIndex = 0;
-            currentCharIndex = 0;
-            correctChars = 0;
-            errorChars = 0;
-            extraChars = 0;
-
-            timeDisplay.textContent = timeLeft;
-            wpmLiveDisplay.textContent = '0';
-            wpmLiveContainer.classList.add('hidden');
-            caret.classList.add('blink');
-            
-            configScreen.classList.remove('opacity-0', 'pointer-events-none');
-            
-            // Switch screens back
-            resultsScreen.classList.add('hidden');
-            resultsScreen.classList.remove('flex');
-            configScreen.classList.remove('hidden');
-            mainScreen.classList.remove('hidden');
-
             initTest();
-            // Force blur on any active element so space/enter doesn't trigger UI
-            document.activeElement.blur(); 
         }
 
-        // --- UI Interactions ---
-
-        // Time Selection
-        document.querySelectorAll('.time-opt').forEach(btn => {
+        // --- UI & Config Interactions ---
+        const modeBtns = document.querySelectorAll('#mode-selector .config-btn');
+        modeBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Update UI visually
-                document.querySelectorAll('.time-opt').forEach(b => {
-                    b.classList.remove('text-mt-primary');
-                    b.classList.add('hover:text-mt-textCorrect');
-                });
-                e.target.classList.add('text-mt-primary');
-                e.target.classList.remove('hover:text-mt-textCorrect');
-                
-                // Update logic
-                testDuration = parseInt(e.target.dataset.time);
+                modeBtns.forEach(b => b.classList.remove('active'));
+                const target = e.target.closest('.config-btn');
+                target.classList.add('active');
+                state.mode = target.dataset.mode;
+                renderSubModes();
                 resetTest();
             });
         });
 
-        // Language Dropdown
-        const langDropdown = document.getElementById('lang-dropdown');
-        function toggleLanguageMenu() {
-            langDropdown.classList.toggle('hidden');
+        function renderSubModes() {
+            el.subModeSelector.innerHTML = '';
+            let options = [];
+            let activeVal = null;
+            let setter = null;
+
+            if (state.mode === 'time') {
+                options = [15, 30, 60, 120];
+                activeVal = state.timeValue;
+                setter = (val) => state.timeValue = val;
+            } else if (state.mode === 'words') {
+                options = [10, 25, 50, 100];
+                activeVal = state.wordCountValue;
+                setter = (val) => state.wordCountValue = val;
+            } else if (state.mode === 'quote') {
+                options = ['all', 'short', 'med', 'long'];
+                activeVal = state.quoteLength;
+                setter = (val) => state.quoteLength = val;
+            }
+
+            options.forEach(opt => {
+                const span = document.createElement('span');
+                span.className = `config-btn cursor-pointer transition-colors ${opt === activeVal ? 'text-mt-primary active' : ''}`;
+                span.textContent = opt;
+                span.onclick = () => {
+                    setter(opt);
+                    renderSubModes(); 
+                    resetTest();
+                };
+                el.subModeSelector.appendChild(span);
+            });
+        }
+
+        // Language Menu
+        function toggleLangMenu() {
+            el.langDropdown.classList.toggle('hidden');
+            el.langDropdown.classList.toggle('flex');
         }
 
         function setLanguage(lang) {
-            currentLanguage = lang;
-            document.getElementById('current-lang').textContent = lang === 'en' ? 'english' : 'indonesian';
-            langDropdown.classList.add('hidden');
-            
-            if (lang === 'en') {
-                currentDictionary = wordsEn;
-            } else {
-                currentDictionary = wordsId;
-            }
-            
+            state.language = lang;
+            el.langDisplay.textContent = lang;
+            el.langDropdown.classList.add('hidden');
+            el.langDropdown.classList.remove('flex');
             resetTest();
         }
 
-        // Close dropdown if clicked outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.group')) {
-                langDropdown.classList.add('hidden');
+                el.langDropdown.classList.add('hidden');
+                el.langDropdown.classList.remove('flex');
             }
         });
-        
-        // Recalculate caret on window resize to prevent misalignment
+
         window.addEventListener('resize', () => {
-            if (!isFinished) updateCaret();
+            if (!state.isFinished) updateCaret();
         });
 
         // Start
+        renderSubModes();
         window.onload = initTest;
 
     </script>
