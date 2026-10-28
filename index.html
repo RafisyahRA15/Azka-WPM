@@ -592,7 +592,7 @@
 
             const totalEffectiveChars = state.correctChars + state.errorChars;
             const rawWpm = (totalEffectiveChars / 5) / elapsedMins;
-            const balancedWpm = rawWpm * 2.00; // Boost 100%
+            const balancedWpm = rawWpm * 1.45; // Boost 45%
             
             return Math.max(0, Math.round(balancedWpm));
         }
